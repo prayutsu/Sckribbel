@@ -24,6 +24,7 @@
         android:layout_height="0dp"
         android:layout_marginStart="60dp"
         android:layout_marginTop="40dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="20dp"
         android:background="#FFFFFF"
         app:layout_constraintBottom_toTopOf="@+id/chat_log_recyclerview"
@@ -98,7 +99,7 @@
         android:textColor="#000000"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/clear_button" />
+        app:layout_constraintTop_toBottomOf="@+id/stroke_imageButton" />
 
     <Button
         android:id="@+id/first_word_textview"
@@ -190,6 +191,17 @@
         android:textColor="#000000"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/stroke_imageButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clear_button"
+        app:srcCompat="@drawable/fui_ic_apple_white_24dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

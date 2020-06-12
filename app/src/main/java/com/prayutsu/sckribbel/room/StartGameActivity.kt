@@ -2,8 +2,12 @@ package com.prayutsu.sckribbel.room
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.text.ClipboardManager
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -22,9 +26,9 @@ import com.prayutsu.sckribbel.room.StartJoinActivity.Companion.JOIN_USER_KEY
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.activity_start_game.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.LineNumberReader
+import java.io.*
+import java.util.*
+
 
 class StartGameActivity : AppCompatActivity() {
     companion object {
@@ -53,12 +57,81 @@ class StartGameActivity : AppCompatActivity() {
             Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
         }
 
+        imageButton_share.setOnClickListener {
+//            takeScreenshot(roomCodeReceived)
+            val imageUri = Uri.parse(
+                "android.resource://" + packageName
+                        + "/drawable/" + "signn_min2"
+            )
+            val shareIntent = Intent()
+            shareIntent.action = Intent.ACTION_SEND
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "$roomCodeReceived")
+            shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
+            shareIntent.type = "image/*"
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(Intent.createChooser(shareIntent, "send"))
+
+        }
+
 
         start_game_button.setOnClickListener {
             numQuery?.remove()
             startGame(roomCodeReceived)
         }
 
+    }
+
+    private fun takeScreenshot(roomCode: String) {
+        val now = Date()
+        DateFormat.format("yyyy-MM-dd_hh:mm:ss", now)
+        try {
+            // image naming and path  to include sd card  appending name you choose for file
+            val mPath: String =
+                Environment.getExternalStorageDirectory().toString().toString() + "/" + now + ".jpg"
+
+            // create bitmap screen capture
+            val v1 = window.decorView.rootView
+            v1.isDrawingCacheEnabled = true
+            val bitmap = Bitmap.createBitmap(v1.drawingCache)
+            v1.isDrawingCacheEnabled = false
+            val imageFile = File(mPath)
+            val outputStream = FileOutputStream(imageFile)
+            val quality = 100
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+            outputStream.flush()
+            outputStream.close()
+            send(imageFile, roomCode)
+        } catch (e: Throwable) {
+            // Several error may come out with file handling or DOM
+            e.printStackTrace()
+        }
+    }
+
+    fun screenShot(view: View): Bitmap? {
+        val bitmap = Bitmap.createBitmap(
+            view.width,
+            view.height, Bitmap.Config.ARGB_8888
+        )
+//        val canvas = Canvas(bitmap)
+//        view.draw(canvas)
+        return bitmap
+    }
+
+
+    private fun send(imageFile: File, roomCode: String) {
+//        val uri = Uri.fromFile(imageFile)
+//        val shareIntent = Intent()
+//        shareIntent.action = Intent.ACTION_SEND
+//        shareIntent.putExtra(Intent.EXTRA_TEXT, "roomcode is $roomCode")
+//        shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
+//        shareIntent.type = "image/*"
+//        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//        startActivity(Intent.createChooser(shareIntent, "$roomCode"))
+        val intent = Intent()
+        intent.action = Intent.ACTION_VIEW
+        val uri = Uri.fromFile(imageFile)
+        intent.setDataAndType(uri, "image/*")
+        startActivity(intent)
     }
 
 
@@ -92,10 +165,16 @@ class StartGameActivity : AppCompatActivity() {
             .collection("game").document("turn")
         val roundRef = db.collection("rooms").document(roomCodeReceived)
             .collection("game").document("round")
+        val finishTimerRef = db.collection("rooms").document(roomCodeReceived)
+            .collection("game").document("finishTimer")
+        val numRef = db.collection("rooms").document(roomCodeReceived)
+            .collection("game").document("numberGuessed")
 
         val turnHashmap = hashMapOf("currentTurn" to 1)
         val timerHashmap = hashMapOf("startTimer" to false)
         val roundHashmap = hashMapOf("currentRound" to 1)
+        val fmap = hashMapOf("ftimer" to false)
+        val countMap = hashMapOf("numGuessed" to 0)
 
         timerRef
             .set(timerHashmap)
@@ -107,6 +186,14 @@ class StartGameActivity : AppCompatActivity() {
             .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
         roundRef
             .set(roundHashmap)
+            .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully written!") }
+            .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
+        finishTimerRef
+            .set(fmap)
+            .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully written!") }
+            .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
+        numRef
+            .set(countMap)
             .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully written!") }
             .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
 

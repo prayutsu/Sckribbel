@@ -110,17 +110,7 @@ class SignupActivity : AppCompatActivity() {
                 progressBar_signup.visibility = View.VISIBLE
                 Blurry.with(this).capture(layout).into(imageView)
 
-//                loading_layout.visibility = View.VISIBLE
-//                val b: Bitmap = Screenshot.takescreenshotOfRootView(imageView)
-//                imageView.setImageBitmap(b)
-//                Blurry.with(this)
-//                    .radius(100)
-//                    .sampling(8)
-//                    .color(Color.argb(66, 255, 255, 0))
-//                    .async()
-//                    .onto(layout);
-//                imageView.setBackgroundColor(Color.parseColor("#999999"))
-//                createScreenShot()
+
                 progressBar_signup.visibility = View.VISIBLE
                 uploadImageToFirebaseStore()
             }
@@ -135,12 +125,6 @@ class SignupActivity : AppCompatActivity() {
     }
 
 
-//    private fun createScreenShot(view: View, scaledViewWidth: Int, scaledViewHeight: Int): Bitmap? {
-//        val localBitmap = Bitmap.createBitmap(scaledViewWidth, scaledViewHeight, Bitmap.Config.ARGB_8888)
-//        val localCanvas: Canvas = Canvas(localBitmap)
-//        view.draw(localCanvas)
-//        return localBitmap
-//    }
 
     private fun uploadImageToFirebaseStore() {
         if (selectedPhotoUri == null) return

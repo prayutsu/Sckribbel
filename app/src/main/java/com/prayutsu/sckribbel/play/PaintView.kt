@@ -26,7 +26,7 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
 
     private var scale = 1f
     var chosenColor = Color.BLACK
-
+    var chosenWidth = 10f
     lateinit var roomCodePaintView: String
 
     private var previousX = 0f
@@ -87,10 +87,12 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         canvas!!.drawPath(path, paint)
         path.reset()
         val sColor: Int = paint.color
+        val cWidth: Float = paint.strokeWidth
         val segment = DrawSegment()
         for (point in currentDrawSegment!!.points) {
             segment.addPoint((point.x), (point.y))
             segment.addColor(sColor)
+            segment.addStrokeWidth(cWidth)
         }
 
         val drawId = UUID.randomUUID().toString().substring(0, 15)
@@ -134,10 +136,12 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 val segment = dataSnapshot.getValue(DrawSegment::class.java)
                 val sColor = segment?.color
+                val sWidth = segment?.strokeWidth
                 if (sColor != null) {
                     paint.color = sColor
                 }
-                canvas!!.drawPath(getPathForPoints(segment!!.points, scale.toDouble()), paint)
+                paint.strokeWidth = sWidth ?: return
+                canvas!!.drawPath(getPathForPoints(segment!!.points, scale), paint)
                 Log.d("Fetch", "Drawing fetching")
                 invalidate()
             }
@@ -159,6 +163,7 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
     fun clearDrawingForAll() {
         ref!!.removeValue()
         paint.color = chosenColor
+        paint.strokeWidth = chosenWidth
     }
 
     fun changeStrokeColor(sColor: Int) {
@@ -170,14 +175,20 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         paint!!.color = Color.WHITE
     }
 
+    fun setStrokeWidth(progress: Int) {
+        var strokeWidth: Float = (progress / 3).toFloat()
+        paint.strokeWidth = strokeWidth
+        chosenWidth = strokeWidth
+    }
+
 
     companion object {
-        fun getPathForPoints(points: List<Point?>, scale: Double): Path {
+        fun getPathForPoints(points: List<Point?>, scale: Float): Path {
             val path = Path()
             var current = points[0]
             path.moveTo(
-                Math.round(scale * current!!.x).toFloat(),
-                Math.round(scale * current.y).toFloat()
+                (scale * current!!.x).toFloat(),
+                (scale * current.y).toFloat()
             )
             var next: Point? = null
             for (i in 1 until points.size) {

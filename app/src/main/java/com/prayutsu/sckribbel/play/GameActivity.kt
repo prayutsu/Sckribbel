@@ -22,9 +22,9 @@ import com.prayutsu.sckribbel.R
 import com.prayutsu.sckribbel.model.GuessText
 import com.prayutsu.sckribbel.model.User
 import com.prayutsu.sckribbel.register.SignupActivity
+import com.prayutsu.sckribbel.room.GameResultsActivity
 import com.prayutsu.sckribbel.room.RoomActivity.Companion.ROOM_CODE
 import com.prayutsu.sckribbel.room.RoomActivity.Companion.playerPlaying
-import com.prayutsu.sckribbel.room.GameResultsActivity
 import com.prayutsu.sckribbel.room.StartJoinActivity
 import com.prayutsu.sckribbel.room.WordsArray
 import com.xwray.groupie.GroupAdapter
@@ -33,14 +33,15 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import kotlin.math.min
 
+
 class GameActivity : AppCompatActivity(), View.OnClickListener {
 
     private var _doubleBackToExitPressedOnce = false
-    private var myPaintView: PaintView? = null
     private var currentTurnInGame = 0
     private var startTimer = false
     private val db = Firebase.firestore
     private val fbdb = FirebaseDatabase.getInstance()
+    private val myUid = FirebaseAuth.getInstance().uid
     var roomCode = ""
     var currentUser: User? = null
     var currentPlayer: Player? = null
@@ -52,18 +53,20 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     var timerRunning = true
     var timerFinished = false
     var finishTimer = false
+    var flagOfWritingFinishTimer = false
 
     var count = 0
     var roundNo = 1
 
-    val MAX_POINTS = 500
+    val MAX_POINTS = 400
 
     var timeRemaining = 0
 
     lateinit var currentDrawerTimer: CountDownTimer
-    lateinit var otherPlayerTimer: CountDownTimer
+    var otherPlayerTimer: CountDownTimer? = null
 
     private var rankListener: ListenerRegistration? = null
+    private var drawRewardListen: ListenerRegistration? = null
 
     var nearlyEqual = false
     private val guessAdapter = GroupAdapter<GroupieViewHolder>()
@@ -73,6 +76,8 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     companion object {
         val TAG = "Game Activity"
         val playersList = mutableListOf<Player>()
+        var myPaintView: PaintView? = null
+        var seekProgress = 30
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +93,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
         currentPlayer = playerPlaying
         myPaintView?.invalidate()
-//        myPaintView?.addDatabaseListeners()
+        myPaintView?.addDatabaseListeners()
 
         chat_log_recyclerview.adapter = guessAdapter
         val linearLayoutManager = LinearLayoutManager(this)
@@ -125,18 +130,11 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             else
                 return@setOnClickListener
         }
+        color_pallette.setOnClickListener(this)
+        eraser.setOnClickListener(this)
+        clear_button.setOnClickListener(this)
+        stroke_imageButton.setOnClickListener(this)
 
-        color_pallette.setOnClickListener {
-            colorPaletteDisplay();
-        }
-
-        eraser.setOnClickListener {
-            myPaintView?.eraser()
-        }
-
-        clear_button.setOnClickListener {
-            myPaintView?.clearDrawingForAll()
-        }
         detectCurrentDrawerUsername()
         findMaxPlayers()
         obtainCurrentTurn()
@@ -148,6 +146,8 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         checkRank()
         roundListener()
         leaderBoardListener()
+//        countListener()
+        listenCorrectGuessNum()
     }
 
     override fun onBackPressed() {
@@ -166,7 +166,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             when (view.id) {
                 R.id.first_word_textview -> {
                     activateBoard()
-                    clear_button.performClick()
                     timerForChoosingWord.cancel()
                     uploadChosenWord(first_word_textview.text.toString())
                     first_word_textview.isEnabled = false
@@ -179,6 +178,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     eraser.visibility = View.VISIBLE
                     color_pallette.visibility = View.VISIBLE
                     clear_button.visibility = View.VISIBLE
+                    stroke_imageButton.visibility = View.VISIBLE
                     myPaintView?.allowDraw = true
 
                     val timerRef = db.collection("rooms").document(roomCode)
@@ -186,12 +186,13 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
                     timerRef
                         .update("startTimer", true)
-
+                    count = 0
                     startTimerCurrentDrawer()
+                    clear_button.performClick()
+
                 }
                 R.id.second_word_textview -> {
                     activateBoard()
-                    clear_button.performClick()
                     timerForChoosingWord.cancel()
                     uploadChosenWord(second_word_textview.text.toString())
                     first_word_textview.isEnabled = false
@@ -204,6 +205,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     eraser.visibility = View.VISIBLE
                     color_pallette.visibility = View.VISIBLE
                     clear_button.visibility = View.VISIBLE
+                    stroke_imageButton.visibility = View.VISIBLE
                     myPaintView?.allowDraw = true
 
                     val timerRef = db.collection("rooms").document(roomCode)
@@ -213,11 +215,11 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         .update("startTimer", true)
 
                     startTimerCurrentDrawer()
-
+                    clear_button.performClick()
+                    count = 0
                 }
                 R.id.third_word_textview -> {
                     activateBoard()
-                    clear_button.performClick()
                     timerForChoosingWord.cancel()
                     uploadChosenWord(third_word_textview.text.toString())
                     third_word_textview.isEnabled = false
@@ -230,6 +232,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     eraser.visibility = View.VISIBLE
                     color_pallette.visibility = View.VISIBLE
                     clear_button.visibility = View.VISIBLE
+                    stroke_imageButton.visibility = View.VISIBLE
                     myPaintView?.allowDraw = true
 
                     val timerRef = db.collection("rooms").document(roomCode)
@@ -239,25 +242,31 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         .update("startTimer", true)
 
                     startTimerCurrentDrawer()
+                    clear_button.performClick()
 
+                    count = 0
+                }
+
+                R.id.eraser -> {
+                    myPaintView?.eraser()
+                }
+                R.id.clear_button -> {
+                    myPaintView?.clearDrawingForAll()
+                }
+                R.id.color_pallette -> {
+                    colorPaletteDisplay()
+                }
+                R.id.stroke_imageButton -> {
+                    val cdd = DialogStroke(this)
+                    cdd.show()
                 }
             }
         }
     }
 
 
-    private fun uploadChosenWord(chosenWord: String) {
-        val wordRef = db.collection("rooms").document(roomCode)
-            .collection("game").document("correctWord")
-
-        val chosenWordMap = hashMapOf("chosenWord" to chosenWord)
-
-        wordRef
-            .set(chosenWordMap)
-    }
-
-
     private fun showViewToPlayer() {
+        count = 0
         if (currentPlayer?.currentDrawer!!) {
             setWords()
             wordChoosingTimer()
@@ -272,36 +281,23 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             first_word_textview.isEnabled = true
             second_word_textview.isEnabled = true
             third_word_textview.isEnabled = true
-            someone_choosing_a_word_textview.visibility = View.INVISIBLE
+//            someone_choosing_a_word_textview.visibility = View.INVISIBLE
 
         } else {
             eraser.visibility = View.INVISIBLE
             color_pallette.visibility = View.INVISIBLE
             clear_button.visibility = View.INVISIBLE
+            stroke_imageButton.visibility = View.INVISIBLE
+
 
             choose_a_word_textview.visibility = View.INVISIBLE
             first_word_textview.visibility = View.INVISIBLE
             second_word_textview.visibility = View.INVISIBLE
             third_word_textview.visibility = View.INVISIBLE
             myPaintView?.allowDraw = false
-            someone_choosing_a_word_textview.visibility = View.INVISIBLE
+//            someone_choosing_a_word_textview.visibility = View.INVISIBLE
 
         }
-    }
-
-    private fun wordChoosingTimer() {
-        timerForChoosingWord = object : CountDownTimer(10000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                timerRunning = true
-            }
-
-            override fun onFinish() {
-                timer_textview.text = "Word Chosen Automatically!"
-                timerRunning = false
-                autoSelectWord()
-            }
-        }
-        timerForChoosingWord.start()
     }
 
 
@@ -311,12 +307,14 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             currentPlayer?.username?.let { updateDrawerName(it) }
             count = 0
             finishTimer = false
-//            checkRank()
+            timerFinished = false
+            flagOfWritingFinishTimer = false
+//            writeNumGuessed()
+            resetCorrectGuessNum()
+            showViewToPlayer()
+        } else {
+            showViewToPlayer()
         }
-        detectCurrentDrawerUsername()
-        showViewToPlayer()
-
-
     }
 
 
@@ -330,9 +328,11 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 }
 
                 override fun onFinish() {
-//                timer_textview.text = "done!"
+                    if (myUid != null) {
+                        drawerRewardListener(currentDrawerUsername, myUid)
+                    }
+                    timer_textview.text = ""
                     myPaintView?.clearDrawingForAll()
-                    timerFinished = true
                     val timerRef = db.collection("rooms").document(roomCode)
                         .collection("game").document("timer")
                     val turnRef = db.collection("rooms").document(roomCode)
@@ -355,6 +355,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         .addOnSuccessListener {
                             Log.d(TAG, "turn updated: $currentTurnInGame")
                         }
+
                 }
             }
         currentDrawerTimer.start()
@@ -372,11 +373,11 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 }
 
                 override fun onFinish() {
-//                timer_textview.text = "done!"
+                    timer_textview.text = ""
                     timerFinished = true
                 }
             }
-        otherPlayerTimer.start()
+        otherPlayerTimer?.start()
     }
 
     private fun updateDrawerName(currentDrawerName: String) {
@@ -405,7 +406,9 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     startTimer = snapshot.get("startTimer") as Boolean
 
                     if (startTimer) {
+                        count = 0
                         startTimer()
+                        timerFinished = false
                         someone_choosing_a_word_textview.visibility = View.INVISIBLE
                     }
 
@@ -414,7 +417,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
     }
-
 
     private fun obtainCurrentTurn() {
         val turnRef = db.collection("rooms").document(roomCode)
@@ -433,6 +435,10 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     currentPlayer?.hasAlreadyGuessed = false
                     writeHasAlreadyGuessed()
                     checkCurrentDrawer()
+                    if (otherPlayerTimer != null) {
+                        otherPlayerTimer?.cancel()
+                        otherPlayerTimer?.onFinish()
+                    }
                 } else {
                     Log.d(TAG, "Current data in turn: null")
                 }
@@ -445,71 +451,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             .collection("leaderBoardPlayers").document(uid)
         hasGuessRef
             .update("hasAlreadyGuessed", false)
-    }
-
-    private fun detectCurrentDrawerUsername() {
-        val drawerRef = db.collection("rooms").document(roomCode)
-            .collection("game").document("currentDrawer")
-
-        drawerRef
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e)
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null && snapshot.exists()) {
-                    Log.d(TAG, "Current data: ${snapshot.data}")
-                    currentDrawerUsername = snapshot.getString("currentDrawerName").toString()
-                    someone_choosing_a_word_textview.text =
-                        "$currentDrawerUsername is choosing a word!!"
-
-                    if (!currentPlayer?.currentDrawer!!)
-                        someone_choosing_a_word_textview.visibility = View.VISIBLE
-
-                } else {
-                    Log.d(TAG, "Current data: null")
-                }
-            }
-    }
-
-    private fun listenChosenWord() {
-        val wordRef = db.collection("rooms").document(roomCode)
-            .collection("game").document("correctWord")
-
-        wordRef
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e)
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null && snapshot.exists()) {
-                    chosenWordByDrawer = snapshot.getString("chosenWord").toString()
-                    Log.d(TAG, "Current word: $chosenWordByDrawer")
-
-                } else {
-                    Log.d(TAG, "Current data in word : null")
-                }
-            }
-    }
-
-    private fun findMaxPlayers() {
-        val maxPlayersRef = db.collection("rooms").document(roomCode)
-
-        maxPlayersRef
-            .get()
-            .addOnSuccessListener { document ->
-                if (document != null) {
-                    Log.d(TAG, "DocumentSnapshot data: ${document.data}")
-                    maxPlayersNum = (document.get("maxPlayers") as Long).toInt()
-                } else {
-                    Log.d(TAG, "No such document")
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.d(TAG, "get failed with ", exception)
-            }
     }
 
     private fun msgListener() {
@@ -563,7 +504,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         Log.d(TAG, "Current data: $snapshot")
                         when (dc.type) {
                             DocumentChange.Type.ADDED -> {
-                                Log.d(TAG, "New city: ${dc.document.data}")
+                                Log.d(TAG, "New guess: ${dc.document.data}")
                                 guessListened = dc.document.getString("guess").toString()
                                 val username = dc.document.getString("username").toString()
                                 val profileImageUrl =
@@ -598,16 +539,17 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             }
     }
 
-    private fun awardPoints(uid: String, reward: Int, username: String) {
+    private fun awardPoints(uid: String, reward: Int, username: String, drawerReward: Int) {
         val playerRef = db.collection("rooms").document(roomCode)
             .collection("leaderBoardPlayers").document(uid)
+
 
         playerRef
             .get()
             .addOnSuccessListener { document ->
                 if (document != null) {
                     Log.d(TAG, "DocumentSnapshot data: ${document.data}")
-                    var prevPoints = (document.get("points") as Long).toInt()
+                    val prevPoints = (document.get("points") as Long).toInt()
                     finalAwardPoints(prevPoints, reward, uid, username)
                 } else {
                     Log.d(TAG, "No such document")
@@ -626,6 +568,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         playerRef
             .update("points", newPoints)
 
+
         val msgMap =
             hashMapOf("username" to username, "reward" to reward)
         val msgRef = db.collection("rooms").document(roomCode)
@@ -634,26 +577,23 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         msgRef
             .add(msgMap)
 
-
-        ////delete correctguesstimestamp only if it is read by all users....
-
-//        val stampRef = db.collection("rooms").document(roomCode)
-//            .collection("correctGuessTimeStamp").document(uid)
-//
-//        stampRef
-//            .delete()
-
-        if (finishTimer) {
-            currentDrawerTimer.cancel()
-            currentDrawerTimer.onFinish()
-        }
     }
 
-    private fun awardPointsToDrawer(drawerReward: Int) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    private fun writeDrawerReward(drawerReward: Int) {
+
+        val drawerRef = db.collection("rooms").document(roomCode)
+            .collection("drawerReward")
+
+        val hashmap = hashMapOf("drawReward" to drawerReward)
+
+        drawerRef
+            .add(hashmap)
+    }
+
+    private fun readDrawerPoints(drawerReward: Int, username: String, uid: String) {
         val drawerRef = db.collection("rooms").document(roomCode)
             .collection("leaderBoardPlayers").document(uid)
-        val username = currentDrawerUsername
+
         drawerRef
             .get()
             .addOnSuccessListener { document ->
@@ -668,7 +608,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             .addOnFailureListener { exception ->
                 Log.d(TAG, "get failed with ", exception)
             }
-
     }
 
     private fun finalAwardPointsToDrawer(
@@ -690,7 +629,42 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
         msgRef
             .add(msgMap)
+    }
 
+    private fun drawerRewardListener(username: String, uid: String) {
+        val ref = db.collection("rooms").document(roomCode)
+            .collection("drawerReward")
+
+        var points = 0
+
+        ref
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    Log.d(TAG, "${document.id} => ${document.data}")
+                    points += (document.get("drawReward") as Long).toInt()
+                }
+                readDrawerPoints(points, username, uid)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(TAG, "Error getting documents: ", exception)
+            }
+
+        ref
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    Log.d(TAG, "${document.id} => ${document.data}")
+
+                    val docRef = db.collection("rooms").document(roomCode)
+                        .collection("drawerReward").document(document.id)
+                    docRef
+                        .delete()
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.w(TAG, "Error getting documents: ", exception)
+            }
 
     }
 
@@ -700,65 +674,38 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
         rankListener =
             timeStampRef
-                .addSnapshotListener { snapshot, e ->
+                .whereEqualTo("uid", myUid)
+                .addSnapshotListener { value, e ->
                     if (e != null) {
                         Log.w(TAG, "Listen failed.", e)
                         return@addSnapshotListener
                     }
 
-                    if (snapshot != null) {
-                        for (dc in snapshot.documentChanges) {
-                            Log.d(TAG, "Current data: $snapshot")
-                            when (dc.type) {
-                                DocumentChange.Type.ADDED -> {
-                                    ++count
-                                    Log.d(TAG, "New city: ${dc.document.data}")
-                                    val uid = dc.document.getString("uid").toString()
-                                    val username = dc.document.getString("username").toString()
-                                    val timeLeft = (dc.document.get("timeLeft") as Long).toInt()
+                    for (doc in value!!) {
+                        val uid = doc.getString("uid").toString()
+                        val username = doc.getString("username").toString()
+                        val timeLeft = (doc.get("timeLeft") as Long).toInt()
+                        ++count
+                        val reward =
+                            MAX_POINTS - (count - 1) * (200 / maxPlayersNum) - (90 - timeLeft) * 2
 
-                                    val reward =
-                                        MAX_POINTS - (count - 1) * (300 / maxPlayersNum) - (90 - timeLeft) * 2
+                        val drawerReward = (reward / maxPlayersNum)
 
-                                    val drawerReward = (reward / maxPlayersNum)
+                        if (myUid == uid) {
+                            awardPoints(uid, reward, username, drawerReward)
+                            writeDrawerReward(drawerReward)
+//                                        val ref = db.collection("rooms").document(roomCode)
+//                                            .collection("game").document("numberGuessed")
+//                                        ref
+//                                            .update("numGuessed", count)
+                            val ref = db.collection("rooms").document(roomCode)
+                                .collection("correctGuess")
 
-                                    if (currentPlayer?.currentDrawer!!) {
-                                        awardPoints(uid, reward, username)
-                                        awardPointsToDrawer(drawerReward)
-                                    }
-                                    if (count == maxPlayersNum - 1) {
-                                        finishTimer = true
-
-                                    }
-                                }
-                                DocumentChange.Type.MODIFIED -> {
-                                    Log.d(TAG, "Modified city: ${dc.document.data}")
-                                    ++count
-                                    Log.d(TAG, "New city: ${dc.document.data}")
-                                    val uid = dc.document.getString("uid").toString()
-                                    val username = dc.document.getString("username").toString()
-                                    val timeLeft = (dc.document.get("timeLeft") as Long).toInt()
-
-                                    val reward =
-                                        MAX_POINTS - (count - 1) * (300 / maxPlayersNum) - (90 - timeLeft) * 2
-
-                                    val drawerReward = (reward / maxPlayersNum)
-
-                                    if (currentPlayer?.currentDrawer!!) {
-                                        awardPoints(uid, reward, username)
-                                        awardPointsToDrawer(drawerReward)
-                                    }
-                                    if (count == maxPlayersNum - 1) {
-                                        finishTimer = true
-                                    }
-                                }
-                                DocumentChange.Type.REMOVED -> {
-                                    Log.d(TAG, "Removed city: ${dc.document.data}")
-                                }
-                            }
+                            val correctMap = hashMapOf("correctGuess" to true)
+                            ref
+                                .add(correctMap)
                         }
-                    } else {
-                        Log.d(TAG, "Current data: null")
+
                     }
                 }
 
@@ -771,7 +718,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 count++
             }
         }
-        if (l - count == 0 || l - count == 1)
+        if (l - count == 0 || l - count == 1 || l - count == 2)
             nearlyEqual = true
     }
 
@@ -800,24 +747,35 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 if (username == currentDrawerUsername) {
                     guessMessage.guessText = "$username is penalized with -100 points!"
                     guessAdapter.add(guessMessage)
+                    Log.d("GuessingCorrect", "username == currentDrawerUsername getting executed")
+
                     chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
 
-                    if (currentPlayer?.username == username)
-                        awardPoints(playerUid, -100, username)
+                    val drawerReward = 0
+
+                    if (currentPlayer?.username == username) {
+                        awardPoints(playerUid, -100, username, drawerReward)
+                        Log.d(
+                            "GuessingCorrect",
+                            "currentPlayer?.username == username getting executed"
+                        )
+                    }
 
                 } else {
                     if (!hasAlreadyGuessed) {
                         guessMessage.guessText = "$username guessed the correct word!"
                         guessAdapter.add(guessMessage)
+                        Log.d("GuessingCorrect", "!hasAlreadyGuessed getting executed")
+
                         chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
 
-                        //award points
                         if (currentPlayer?.username == username) {
                             val stampMap =
                                 hashMapOf(
                                     "uid" to playerUid,
                                     "username" to username,
-                                    "timeLeft" to timeRemain
+                                    "timeLeft" to timeRemain,
+                                    "timeStamp" to timestamp
                                 )
 
                             val timeStampRef = db.collection("rooms").document(roomCode)
@@ -834,6 +792,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         guessMessage.guessText = "$username already guessed the correct word!"
                         guessAdapter.add(guessMessage)
                         chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
+                        Log.d("GuessingCorrect", "!hasAlreadyGuessed  else getting executed")
 
                         //Don't award points
                     }
@@ -842,22 +801,27 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 if (username == currentDrawerUsername) {
                     guessMessage.guessText = "$username is penalized with -100 points!"
                     guessAdapter.add(guessMessage)
+                    Log.d("GuessingCorrect", "nearlu eequal if getting executed")
                     chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
                 } else {
                     guessMessage.guessText = "$username's guess is nearly correct!"
                     guessAdapter.add(guessMessage)
                     nearlyEqual = false
+                    Log.d("GuessingCorrect", "nearly equal   else getting executed")
                     chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
                 }
             } else {
                 guessMessage.guessText = guessWord
                 guessAdapter.add(guessMessage)
                 chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
+                Log.d("GuessingCorrect", "correctword  else getting executed")
             }
         } else {
             guessMessage.guessText = guessWord
             guessAdapter.add(guessMessage)
             chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
+            Log.d("GuessingCorrect", "timerfinished else  else getting executed")
+
         }
 
     }
@@ -896,7 +860,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             hashMapOf(
                 "guess" to guessMsg,
                 "timeStamp" to System.currentTimeMillis(),
-                "playerUid" to FirebaseAuth.getInstance().currentUser?.uid,
+                "playerUid" to myUid,
                 "hasAlreadyGuessed" to currentPlayer?.hasAlreadyGuessed,
                 "username" to currentPlayer?.username,
                 "profileImageUrl" to currentPlayer?.profileImageUrl,
@@ -914,6 +878,141 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
         guess_editText.text.clear()
 
+    }
+
+
+    private fun leaderBoardListener() {
+        val playerRef = db.collection("rooms").document(roomCode)
+            .collection("leaderBoardPlayers")
+        var player: Player
+        playerRef
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Log.w(TAG, "listen:error", e)
+                    return@addSnapshotListener
+                }
+
+                for (dc in snapshots!!.documentChanges) {
+                    when (dc.type) {
+                        DocumentChange.Type.ADDED -> {
+                            Log.d(TAG, "New city: ${dc.document.data}")
+                            val username = dc.document.getString("username").toString()
+                            player = dc.document.toObject(Player::class.java)
+                            playersList.removeAll { it.username == username }
+                            playersList.add(player)
+                            updateRecyclerView()
+                        }
+                        DocumentChange.Type.MODIFIED -> {
+                            Log.d(TAG, "Modified city: ${dc.document.data}")
+                            val username = dc.document.getString("username").toString()
+                            player = dc.document.toObject(Player::class.java)
+                            playersList.removeAll { it.username == username }
+                            playersList.add(player)
+                            updateRecyclerView()
+
+                        }
+                        DocumentChange.Type.REMOVED -> Log.d(
+                            TAG,
+                            "Removed city: ${dc.document.data}"
+                        )
+                    }
+                }
+
+            }
+    }
+
+
+    private fun uploadChosenWord(chosenWord: String) {
+        val wordRef = db.collection("rooms").document(roomCode)
+            .collection("game").document("correctWord")
+
+        val chosenWordMap = hashMapOf("chosenWord" to chosenWord)
+
+        wordRef
+            .set(chosenWordMap)
+    }
+
+    private fun wordChoosingTimer() {
+        timerForChoosingWord = object : CountDownTimer(15000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                timerRunning = true
+            }
+
+            override fun onFinish() {
+//                timer_textview.text = "Word Chosen Automatically!"
+                timerRunning = false
+                autoSelectWord()
+            }
+        }
+        timerForChoosingWord.start()
+    }
+
+    private fun detectCurrentDrawerUsername() {
+        val drawerRef = db.collection("rooms").document(roomCode)
+            .collection("game").document("currentDrawer")
+
+        drawerRef
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d(TAG, "Current data: ${snapshot.data}")
+                    currentDrawerUsername = snapshot.getString("currentDrawerName").toString()
+                    someone_choosing_a_word_textview.text =
+                        "$currentDrawerUsername is choosing a word!!"
+
+                    if (!currentPlayer?.currentDrawer!!)
+                        someone_choosing_a_word_textview.visibility = View.VISIBLE
+                    else
+                        someone_choosing_a_word_textview.visibility = View.INVISIBLE
+
+                } else {
+                    Log.d(TAG, "Current data: null")
+                }
+            }
+    }
+
+
+    private fun listenChosenWord() {
+        val wordRef = db.collection("rooms").document(roomCode)
+            .collection("game").document("correctWord")
+
+        wordRef
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    chosenWordByDrawer = snapshot.getString("chosenWord").toString()
+                    Log.d(TAG, "Current word: $chosenWordByDrawer")
+
+                } else {
+                    Log.d(TAG, "Current data in word : null")
+                }
+            }
+    }
+
+    private fun findMaxPlayers() {
+        val maxPlayersRef = db.collection("rooms").document(roomCode)
+
+        maxPlayersRef
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    Log.d(TAG, "DocumentSnapshot data: ${document.data}")
+                    maxPlayersNum = (document.get("maxPlayers") as Long).toInt()
+                } else {
+                    Log.d(TAG, "No such document")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.d(TAG, "get failed with ", exception)
+            }
     }
 
     private fun updateRound() {
@@ -938,14 +1037,12 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     roundNo = (snapshot.get("currentRound") as Long).toInt()
                     round_textview.text = "Round $roundNo of 3"
                     if (roundNo == 4) {
-                        //declare results and game over!!
-
                         val intent = Intent(this, GameResultsActivity::class.java)
                         intent.putExtra(ROOM_CODE, roomCode)
                         intent.flags =
                             Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(intent)
-
+                        overridePendingTransition(R.anim.slide_out_bottom, R.anim.slide_in_bottom);
                     }
                 } else {
                     Log.d(TAG, "Current data: null")
@@ -970,7 +1067,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
         myPaintView?.invalidate()
         myPaintView?.canvas!!.drawPath(
-            PaintView.getPathForPoints(segment.points, scale.toDouble()),
+            PaintView.getPathForPoints(segment.points, scale),
             myPaintView?.paint ?: return
         )
         val drawId = UUID.randomUUID().toString().substring(0, 15)
@@ -986,9 +1083,9 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun setWords() {
         val random = Random()
-        val first = random.nextInt(91) + 1
-        val second = random.nextInt(91) + 1
-        val third = random.nextInt(91) + 1
+        val first = random.nextInt(6800) + 1
+        val second = random.nextInt(6800) + 1
+        val third = random.nextInt(6800) + 1
         first_word_textview.text = WordsArray.words[first]
         second_word_textview.text = WordsArray.words[second]
         third_word_textview.text = WordsArray.words[third]
@@ -1016,6 +1113,112 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             .show()
     }
 
+    private fun updateRecyclerView() {
+        playersList.sort()
+        if (leaderboardAdapter.itemCount > 0) {
+            leaderboardAdapter.clear()
+        }
+        for (player in playersList) {
+            leaderboardAdapter.add(LeaderboardItem(player))
+        }
+
+    }
+
+//    private fun countListener() {
+//        val ref = db.collection("rooms").document(roomCode)
+//            .collection("game").document("numberGuessed")
+//        ref
+//            .addSnapshotListener { snapshot, e ->
+//                if (e != null) {
+//                    Log.w(TAG, "Listen failed.", e)
+//                    return@addSnapshotListener
+//                }
+//
+//                if (snapshot != null && snapshot.exists()) {
+//                    Log.d(TAG, "Current data: ${snapshot.data}")
+//                    count = (snapshot.get("numGuessed") as Long).toInt()
+//                    if (count == maxPlayersNum - 1) {
+//                        if (currentPlayer?.currentDrawer!!) {
+//                            currentDrawerTimer.cancel()
+//                            currentDrawerTimer.onFinish()
+//                        } else {
+//                            otherPlayerTimer?.cancel()
+//                            otherPlayerTimer?.onFinish()
+//                        }
+//                    }
+//                } else {
+//                    Log.d(TAG, "Current data: null")
+//                }
+//            }
+//    }
+
+//    private fun writeNumGuessed() {
+//        val ref = db.collection("rooms").document(roomCode)
+//            .collection("game").document("numberGuessed")
+//        ref
+//            .update("numGuessed", 0)
+//    }
+
+    private fun resetCorrectGuessNum() {
+        val ref = db.collection("rooms").document(roomCode)
+            .collection("correctGuess")
+
+        ref
+            .get()
+            .addOnSuccessListener { result ->
+                for (document in result) {
+                    Log.d(TAG, "${document.id} => ${document.data}")
+                    val docRef = db.collection("rooms").document(roomCode)
+                        .collection("correctGuess").document(document.id)
+                    docRef
+                        .delete()
+
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.d(TAG, "Error getting documents: ", exception)
+            }
+    }
+
+    private fun listenCorrectGuessNum() {
+        val ref = db.collection("rooms").document(roomCode)
+            .collection("correctGuess")
+
+        ref
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Log.w(TAG, "listen:error", e)
+                    return@addSnapshotListener
+                }
+
+                for (dc in snapshots!!.documentChanges) {
+                    when (dc.type) {
+                        DocumentChange.Type.ADDED -> {
+                            Log.d(TAG, "New city: ${dc.document.data}")
+                            ++count
+                            if (count == maxPlayersNum - 1) {
+                                if (currentPlayer?.currentDrawer!!) {
+                                    currentDrawerTimer.cancel()
+                                    currentDrawerTimer.onFinish()
+                                } else {
+                                    otherPlayerTimer?.cancel()
+                                    otherPlayerTimer?.onFinish()
+                                }
+                            }
+                        }
+                        DocumentChange.Type.MODIFIED -> Log.d(
+                            TAG,
+                            "Modified city: ${dc.document.data}"
+                        )
+                        DocumentChange.Type.REMOVED -> Log.d(
+                            TAG,
+                            "Removed city: ${dc.document.data}"
+                        )
+                    }
+                }
+            }
+    }
+
     private fun changeColor(selectedColor: Int) {
         myPaintView?.changeStrokeColor(selectedColor)
     }
@@ -1034,61 +1237,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             }
         }
     }
-
-    private fun leaderBoardListener() {
-        val playerRef = db.collection("rooms").document(roomCode)
-            .collection("leaderBoardPlayers")
-        var player: Player
-        playerRef
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    Log.w(TAG, "listen:error", e)
-                    return@addSnapshotListener
-                }
-
-                for (dc in snapshots!!.documentChanges) {
-                    when (dc.type) {
-                        DocumentChange.Type.ADDED -> {
-                            Log.d(TAG, "New city: ${dc.document.data}")
-                            val username = dc.document.getString("username").toString()
-                            player = dc.document.toObject(Player::class.java)
-                            playersList.removeAll { it.username == username }
-                            playersList.add(player)
-                            updateRecyclerView()
-                        }
-                        DocumentChange.Type.MODIFIED -> {
-                            Log.d(TAG, "Modified city: ${dc.document.data}")
-                            val username = dc.document.getString("username").toString()
-//                            val pfu = dc.document.getString("profileImageUrl").toString()
-                            player = dc.document.toObject(Player::class.java)
-                            playersList.removeAll { it.username == username }
-                            playersList.add(player)
-                            updateRecyclerView()
-                            if (finishTimer) {
-                                otherPlayerTimer.cancel()
-                                otherPlayerTimer.onFinish()
-                            }
-                        }
-                        DocumentChange.Type.REMOVED -> Log.d(
-                            TAG,
-                            "Removed city: ${dc.document.data}"
-                        )
-                    }
-                }
-            }
-    }
-
-    private fun updateRecyclerView() {
-        playersList.sort()
-        if (leaderboardAdapter.itemCount > 0) {
-            leaderboardAdapter.clear()
-        }
-        for (player in playersList) {
-            leaderboardAdapter.add(LeaderboardItem(player))
-        }
-    }
-
-
 }
 
 

@@ -88,7 +88,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         Color.parseColor("#43bcfe"),
         Color.parseColor("#3fdec3"),
         Color.parseColor("#a97cf4"),
-        Color.parseColor("#f9b15a")
+        Color.parseColor("#ffeb3b")
     )
 
     companion object {
@@ -528,13 +528,13 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 //
                                 Log.d("Toast", "Executing")
                                 if (award > 0) {
-                                    points_awarded_textview?.text = "$username  + $award points"
+                                    tv.text = "$username  + $award points"
                                     val toast = Toast(applicationContext)
                                     toast.duration = Toast.LENGTH_SHORT
                                     toast.view = layout
                                     toast.setGravity(Gravity.CENTER_VERTICAL, 0, -200);
                                     toast.show()
-                                } else {
+                                } else if (award < 0) {
                                     tv.text = "$username  - ${-award} points"
                                     val toast = Toast(applicationContext)
                                     toast.duration = Toast.LENGTH_SHORT
@@ -874,7 +874,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     } else {
                         guessMessage.guessText = "$username already guessed the correct word!"
                         guessAdapter.add(guessMessage)
-                        guessMessage.textColor = Color.parseColor("#07DD19")
                         chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
                         Log.d("GuessingCorrect", "!hasAlreadyGuessed  else getting executed")
                     }
@@ -888,6 +887,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 } else {
                     guessMessage.guessText = "$username's guess is nearly correct!"
                     guessAdapter.add(guessMessage)
+                    guessMessage.textColor = Color.parseColor("#ffeb3b")
                     nearlyEqual = false
                     Log.d("GuessingCorrect", "nearly equal   else getting executed")
                     chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)

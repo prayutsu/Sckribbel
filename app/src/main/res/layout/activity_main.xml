@@ -2,20 +2,24 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/game_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#e1f5fe"
+    android:visibility="visible"
     tools:context=".play.GameActivity">
 
     <ImageView
         android:id="@+id/color_pallette"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="40dp"
-        android:visibility="invisible"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/paint"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_launcher_background" />
+        app:layout_constraintTop_toBottomOf="@+id/stroke_imageButton" />
 
     <view
         android:id="@+id/drawing_board"
@@ -26,150 +30,241 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="20dp"
-        android:background="#FFFFFF"
+        android:background="@drawable/drawing_board_background"
+        android:elevation="@dimen/cardview_default_elevation"
         app:layout_constraintBottom_toTopOf="@+id/chat_log_recyclerview"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/show_correct_word_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="140dp"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:gravity="center|center_horizontal|center_vertical"
+        android:maxWidth="200dp"
+        android:textColor="#08690C"
+        android:textSize="24sp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@+id/drawing_board"
+        app:layout_constraintStart_toStartOf="@+id/drawing_board"
+        app:layout_constraintTop_toTopOf="@+id/drawing_board" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/choose_a_word_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:gravity="center|clip_vertical|center_horizontal"
+        android:text="Choose a Word"
+        android:textColor="#000000"
+        android:textSize="24sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="@+id/drawing_board"
+        app:layout_constraintStart_toStartOf="@+id/drawing_board"
+        app:layout_constraintTop_toTopOf="@+id/drawing_board" />
+
     <ImageButton
         android:id="@+id/eraser"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:visibility="invisible"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/eraser"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/color_pallette"
-        app:srcCompat="@android:drawable/arrow_up_float" />
+        app:layout_constraintTop_toBottomOf="@+id/clock_imageview" />
 
     <ImageButton
         android:id="@+id/clear_button"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:visibility="invisible"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/trash"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/eraser"
-        app:srcCompat="@drawable/abc_vector_test" />
+        app:layout_constraintTop_toBottomOf="@+id/eraser" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_log_recyclerview"
-        android:layout_width="0dp"
+        android:layout_width="200dp"
         android:layout_height="0dp"
         android:layout_marginTop="400dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/guess_log_background"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:paddingStart="8dp"
         android:paddingTop="10dp"
+        android:paddingEnd="8dp"
         android:paddingBottom="60dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/leaderboard_recyclerview"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/guess_editText"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/guess_editText_layout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
         android:layout_width="0dp"
         android:layout_height="40dp"
-        android:layout_marginBottom="10dp"
-        android:ems="10"
-        android:hint="Type your guess inside me.."
-        android:inputType="textShortMessage|textPersonName"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginBottom="4dp"
+        android:elevation="@dimen/cardview_default_elevation"
         app:layout_constraintBottom_toBottomOf="@+id/chat_log_recyclerview"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/chat_log_recyclerview" />
+        app:layout_constraintStart_toStartOf="@+id/chat_log_recyclerview">
 
-    <Button
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/guess_editText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Guess here"
+            android:inputType="textShortMessage|textPersonName"
+            android:paddingStart="6dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="1dp"
+            android:visibility="visible" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <ImageButton
         android:id="@+id/guess_button"
-        android:layout_width="40dp"
-        android:layout_height="0dp"
-        android:text="Guess"
-        app:layout_constraintBottom_toBottomOf="@+id/guess_editText"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/direct"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/guess_editText_layout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guess_editText" />
+        app:layout_constraintStart_toEndOf="@+id/guess_editText_layout"
+        app:layout_constraintTop_toTopOf="@+id/guess_editText_layout" />
+
+    <ImageView
+
+        android:id="@+id/clock_imageview"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="50dp"
+        android:background="@drawable/clock"
+        android:elevation="@dimen/default_preview_image_height"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/clock_background_imageview"
+        android:layout_width="18dp"
+        android:layout_height="22dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="2dp"
+        android:layout_marginBottom="1dp"
+        android:background="@drawable/shape_clock_textview"
+        android:elevation="@dimen/default_preview_image_height"
+        app:layout_constraintBottom_toBottomOf="@+id/clock_imageview"
+        app:layout_constraintEnd_toEndOf="@+id/clock_imageview"
+        app:layout_constraintStart_toStartOf="@+id/clock_imageview"
+        app:layout_constraintTop_toTopOf="@+id/clock_imageview"
+        app:layout_constraintVertical_bias="0.6" />
 
     <TextView
         android:id="@+id/timer_textview"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#e8f9fc"
+        android:elevation="@dimen/default_preview_image_height"
+        android:foregroundGravity="center"
+        android:gravity="center|center_vertical"
         android:textColor="#000000"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stroke_imageButton" />
+        android:textIsSelectable="false"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/clock_background_imageview"
+        app:layout_constraintEnd_toEndOf="@+id/clock_background_imageview"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/clock_background_imageview"
+        app:layout_constraintTop_toTopOf="@+id/clock_background_imageview"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/someone_choosing_a_word_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="220dp"
+        android:elevation="@dimen/cardview_default_elevation"
+        android:gravity="center|center_horizontal|center_vertical"
+        android:text="lnalnlc d m ,m  "
+        android:textColor="#070707"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@+id/drawing_board"
+        app:layout_constraintStart_toStartOf="@+id/drawing_board"
+        app:layout_constraintTop_toTopOf="@+id/drawing_board" />
 
     <Button
         android:id="@+id/first_word_textview"
-        android:layout_width="wrap_content"
+        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="first_word"
         android:textSize="18sp"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="@+id/drawing_board"
         app:layout_constraintStart_toStartOf="@+id/drawing_board"
         app:layout_constraintTop_toBottomOf="@+id/choose_a_word_textview" />
 
     <Button
         android:id="@+id/second_word_textview"
-        android:layout_width="wrap_content"
+        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="second_word"
         android:textSize="18sp"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="@+id/first_word_textview"
         app:layout_constraintStart_toStartOf="@+id/first_word_textview"
         app:layout_constraintTop_toBottomOf="@+id/first_word_textview" />
 
     <Button
         android:id="@+id/third_word_textview"
-        android:layout_width="wrap_content"
+        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="third_word"
+
         android:textSize="18sp"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="@+id/second_word_textview"
         app:layout_constraintStart_toStartOf="@+id/second_word_textview"
         app:layout_constraintTop_toBottomOf="@+id/second_word_textview" />
 
-    <TextView
-        android:id="@+id/choose_a_word_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:text="Choose a Word"
-        android:textColor="#010101"
-        android:textSize="24sp"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.478"
-        app:layout_constraintStart_toStartOf="@+id/drawing_board"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/someone_choosing_a_word_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="200dp"
-        android:textColor="#070707"
-        android:textSize="20sp"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/drawing_board"
-        app:layout_constraintTop_toTopOf="@+id/drawing_board" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/leaderboard_recyclerview"
-        android:layout_width="150dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="20dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:elevation="@dimen/cardview_default_elevation"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/chat_log_recyclerview"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/drawing_board" />
 
@@ -194,14 +289,42 @@
 
     <ImageButton
         android:id="@+id/stroke_imageButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:visibility="invisible"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/brush"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/clear_button"
-        app:srcCompat="@drawable/fui_ic_apple_white_24dp" />
+        app:layout_constraintTop_toBottomOf="@+id/clear_button" />
+
+    <TextView
+        android:id="@+id/chosen_word_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center|center_horizontal|center_vertical"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/drawing_board"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintBottom_toTopOf="@+id/leaderboard_recyclerview"
+        app:layout_constraintEnd_toStartOf="@+id/chat_log_recyclerview"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/drawing_board"
+        app:srcCompat="@drawable/logo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

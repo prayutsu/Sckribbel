@@ -1,13 +1,16 @@
 package com.prayutsu.sckribbel.register
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -18,13 +21,12 @@ import com.prayutsu.sckribbel.R
 import com.prayutsu.sckribbel.model.User
 import com.prayutsu.sckribbel.room.RoomActivity
 import com.squareup.picasso.Picasso
-import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_signup.*
-import java.io.File
 import java.util.*
 
 
 class SignupActivity : AppCompatActivity() {
+    private var _doubleBackToExitPressedOnce = false
 
     companion object {
 
@@ -38,6 +40,7 @@ class SignupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
+        supportActionBar?.hide()
 
         already_registered_textview.setOnClickListener {
             val intent = Intent(this, LoginActivity::class.java)
@@ -63,6 +66,26 @@ class SignupActivity : AppCompatActivity() {
         }
 
 
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (currentFocus != null) {
+            val imm: InputMethodManager =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    override fun onBackPressed() {
+        Log.i("Back pressed", "onBackPressed--")
+        if (_doubleBackToExitPressedOnce) {
+            super.onBackPressed()
+            return
+        }
+        this._doubleBackToExitPressedOnce = true
+        Toast.makeText(this, "Press again to quit", Toast.LENGTH_SHORT).show()
+        Handler().postDelayed({ _doubleBackToExitPressedOnce = false }, 2000)
     }
 
     var selectedPhotoUri: Uri? = null
@@ -108,10 +131,8 @@ class SignupActivity : AppCompatActivity() {
                 Log.d("Main", "Successfully created user with uid : ${it.result?.user?.uid}")
 
                 progressBar_signup.visibility = View.VISIBLE
-                Blurry.with(this).capture(layout).into(imageView)
 
 
-                progressBar_signup.visibility = View.VISIBLE
                 uploadImageToFirebaseStore()
             }
 

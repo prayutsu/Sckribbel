@@ -1,25 +1,41 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">#26c6da</item>
+        <item name="colorPrimaryVariant">#009688</item>
+        <item name="colorOnPrimary">#000000</item>
+        <item name="colorSecondary">#00acc1</item>
+        <item name="colorSecondaryVariant">#00acc1</item>
+        <item name="colorOnSecondary">#000000</item>
+        <item name="colorError">#F44336</item>
+        <item name="colorOnError">#000000</item>
+        <item name="colorSurface">#000000</item>
+        <item name="colorOnSurface">#000000</item>
+
+        <item name="android:windowContentTransitions">true</item>
     </style>
 
-    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:background">@drawable/splash_background</item>
-    </style>
+    <style name="SplashTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar"></style>
 
-    <style name="GameTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="GameTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">#006064</item>
+        <item name="colorPrimaryVariant">#00acc1</item>
+        <item name="colorOnPrimary">#000000</item>
+        <item name="colorSecondary">#00bcd4</item>
+        <item name="colorSecondaryVariant">#009688</item>
+        <item name="colorOnSecondary">#000000</item>
+        <item name="colorError">#F44336</item>
+        <item name="colorOnError">#000000</item>
+        <item name="colorSurface">#00acc1</item>
+        <item name="colorOnSurface">#000000</item>
+        <item name="backgroundColor">#009688</item>
+
     </style>
 
-    <style name="LoadingTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="LoadingTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="backgroundColor">#0FFFFFFF</item>

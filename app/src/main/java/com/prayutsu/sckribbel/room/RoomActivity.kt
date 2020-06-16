@@ -1,12 +1,18 @@
 package com.prayutsu.sckribbel.room
 
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -29,19 +35,48 @@ class RoomActivity : AppCompatActivity() {
         val ROOM_CODE = "ROOM_CODE"
         var playerPlaying = Player("", "")
         var players = mutableSetOf<Player>()
+        lateinit var mediaPlayer: MediaPlayer
+        var colorArrayPlayers = listOf<Int>(
+            Color.parseColor("#5fd870"),
+            Color.parseColor("#eab06b"),
+            Color.parseColor("#ec4452"),
+            Color.parseColor("#ffeb3b"),
+            Color.parseColor("#ff5722"),
+            Color.parseColor("#26a69a"),
+            Color.parseColor("#8bc34a"),
+            Color.parseColor("#ffeb3b"),
+            Color.parseColor("#ffc107"),
+            Color.parseColor("#00c853"),
+            Color.parseColor("#e65100"),
+            Color.parseColor("#ec407a"),
+            Color.parseColor("#ba68c8"),
+            Color.parseColor("#2196f3"),
+            Color.parseColor("#E5B908"),
+            Color.parseColor("#08E543"),
+            Color.parseColor("#E5082D"),
+            Color.parseColor("#1AA9C5"),
+            Color.parseColor("#E98D25"),
+            Color.parseColor("#8610EE"),
+            Color.parseColor("#E3E919"),
+            Color.parseColor("#59E919")
+        )
     }
 
+
+    private var _doubleBackToExitPressedOnce = false
 
     var roomUser: User? = null
     var userEntry: ListenerRegistration? = null
     var alreadyJoined = false
     var hasGameStarted = true
     var enteredRoomCode: String = ""
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room)
+        supportActionBar?.title = "Create or Join A Room"
+
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
+
 
         roomUser = intent.getParcelableExtra(USER_KEY_SIGNUP)
         create_room_button.setOnClickListener {
@@ -50,7 +85,7 @@ class RoomActivity : AppCompatActivity() {
             val text = number_of_players_editText.text.toString()
             if (text != "") {
                 val numberOfPlayers = (number_of_players_editText.text.toString()).toInt()
-                if (numberOfPlayers in 2..6) {
+                if (numberOfPlayers in 1..6) {
                     room_code_edittext.visibility = View.INVISIBLE
                     createRoom(numberOfPlayers)
                 } else {
@@ -73,12 +108,15 @@ class RoomActivity : AppCompatActivity() {
             dummy_create_button.visibility = View.INVISIBLE
             number_of_players_editText.visibility = View.VISIBLE
             create_room_button.visibility = View.VISIBLE
+            number_of_players_ediitext_layout.visibility = View.VISIBLE
+
         }
 
         join_room_button.setOnClickListener {
             room_code_edittext.visibility = View.VISIBLE
             join_room_button.visibility = View.INVISIBLE
             button_final_join.visibility = View.VISIBLE
+            room_code_edittext_layout.visibility = View.VISIBLE
         }
 
 
@@ -95,6 +133,38 @@ class RoomActivity : AppCompatActivity() {
         }
     }
 
+
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer.pause()
+        mediaPlayer.release()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
+        mediaPlayer.start()
+    }
+
+    override fun onBackPressed() {
+        Log.i("Back pressed", "onBackPressed--")
+        if (_doubleBackToExitPressedOnce) {
+            super.onBackPressed()
+            return
+        }
+        this._doubleBackToExitPressedOnce = true
+        Toast.makeText(this, "Press again to quit", Toast.LENGTH_SHORT).show()
+        Handler().postDelayed({ _doubleBackToExitPressedOnce = false }, 2000)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (currentFocus != null) {
+            val imm: InputMethodManager =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+        }
+        return super.dispatchTouchEvent(ev)
+    }
 
     private fun createRoom(maxNumOfPlayers: Int) {
 

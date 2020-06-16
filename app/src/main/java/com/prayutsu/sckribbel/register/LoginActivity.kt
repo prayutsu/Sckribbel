@@ -1,22 +1,27 @@
 package com.prayutsu.sckribbel.register
 
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.getField
 import com.google.firebase.ktx.Firebase
 import com.prayutsu.sckribbel.R
 import com.prayutsu.sckribbel.model.User
 import com.prayutsu.sckribbel.register.SignupActivity.Companion.USER_KEY_SIGNUP
 import com.prayutsu.sckribbel.room.RoomActivity
 import kotlinx.android.synthetic.main.activity_login.*
-import java.util.*
+
 
 class LoginActivity : AppCompatActivity() {
+    private var _doubleBackToExitPressedOnce = false
 
     companion object {
         var currentUserLogin: User? = null
@@ -25,8 +30,7 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-
+        supportActionBar?.hide()
 
         back_to_signup_textview.setOnClickListener {
             val intent = Intent(this, SignupActivity::class.java)
@@ -40,6 +44,25 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        Log.i("Back pressed", "onBackPressed--")
+        if (_doubleBackToExitPressedOnce) {
+            super.onBackPressed()
+            return
+        }
+        this._doubleBackToExitPressedOnce = true
+        Toast.makeText(this, "Press again to quit", Toast.LENGTH_SHORT).show()
+        Handler().postDelayed({ _doubleBackToExitPressedOnce = false }, 2000)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (currentFocus != null) {
+            val imm: InputMethodManager =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+        }
+        return super.dispatchTouchEvent(ev)
+    }
 
     private fun performLogin() {
         val email = email_login.text.toString()
@@ -54,6 +77,8 @@ class LoginActivity : AppCompatActivity() {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener {
                 if (!it.isSuccessful) return@addOnCompleteListener
+
+                login_progressbar.visibility = View.VISIBLE
 
                 Log.d("Login", "Successfully logged in : ${it.result?.user?.uid}")
 
@@ -81,7 +106,6 @@ class LoginActivity : AppCompatActivity() {
                         Log.d("Room", "Error getting documents: $exception")
                         button_login.isEnabled = true
                     }
-
             }
 
             .addOnFailureListener {

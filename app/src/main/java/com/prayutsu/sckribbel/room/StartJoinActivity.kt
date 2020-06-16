@@ -1,9 +1,14 @@
 package com.prayutsu.sckribbel.room
 
 import android.content.Intent
+import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
+import android.view.WindowManager
+import android.widget.Toast
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -30,19 +35,45 @@ class StartJoinActivity : AppCompatActivity() {
         const val TAG = "Join Game"
     }
 
+    private var _doubleBackToExitPressedOnce = false
+
     var myUser: User? = null
     var fetching: ListenerRegistration? = null
+    lateinit var mediaPlayer: MediaPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start_join)
-
+        supportActionBar?.title = "Play Do-odle"
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
         val roomCodeReceived = intent.getStringExtra(RoomActivity.ROOM_CODE).toString()
         myUser = intent.getParcelableExtra(SignupActivity.USER_KEY_SIGNUP)
 
-//        fetchPlayers(roomCodeReceived)
         createArrayOfWords(roomCodeReceived)
         startGame(roomCodeReceived)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer.stop()
+        mediaPlayer.release()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
+        mediaPlayer.start()
+    }
+
+    override fun onBackPressed() {
+        Log.i("Back pressed", "onBackPressed--")
+        if (_doubleBackToExitPressedOnce) {
+            super.onBackPressed()
+            return
+        }
+        this._doubleBackToExitPressedOnce = true
+        Toast.makeText(this, "Press again to quit", Toast.LENGTH_SHORT).show()
+        Handler().postDelayed({ _doubleBackToExitPressedOnce = false }, 2000)
     }
 
     private fun createArrayOfWords(roomCode: String) {
@@ -88,6 +119,12 @@ class StartJoinActivity : AppCompatActivity() {
                         Log.d("Fetch", "Document is: ${doc.data}")
                     }
                     join_game_recycler_view.adapter = adapter
+                    join_game_recycler_view.addItemDecoration(
+                        DividerItemDecoration(
+                            this,
+                            DividerItemDecoration.VERTICAL
+                        )
+                    )
                 }
     }
 

@@ -3,15 +3,20 @@ package com.prayutsu.sckribbel.room
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Environment
+import android.os.Handler
 import android.text.ClipboardManager
 import android.text.format.DateFormat
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
@@ -26,6 +31,7 @@ import com.prayutsu.sckribbel.room.StartJoinActivity.Companion.JOIN_USER_KEY
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.activity_start_game.*
+import kotlinx.android.synthetic.main.activity_start_join.*
 import java.io.*
 import java.util.*
 
@@ -35,12 +41,17 @@ class StartGameActivity : AppCompatActivity() {
         val TAG = "Game Started"
     }
 
+    private var _doubleBackToExitPressedOnce = false
+
+    lateinit var mediaPlayer: MediaPlayer
     var myUser: User? = null
     private var numQuery: ListenerRegistration? = null
     private var fetching: ListenerRegistration? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start_game)
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
+        supportActionBar?.title = "Play Do-odle"
 
         val roomCodeReceived = intent.getStringExtra(ROOM_CODE).toString()
         myUser = intent.getParcelableExtra(USER_KEY_SIGNUP)
@@ -79,6 +90,29 @@ class StartGameActivity : AppCompatActivity() {
             startGame(roomCodeReceived)
         }
 
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer.stop()
+        mediaPlayer.release()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
+        mediaPlayer.start()
+    }
+
+    override fun onBackPressed() {
+        Log.i("Back pressed", "onBackPressed--")
+        if (_doubleBackToExitPressedOnce) {
+            super.onBackPressed()
+            return
+        }
+        this._doubleBackToExitPressedOnce = true
+        Toast.makeText(this, "Press again to quit", Toast.LENGTH_SHORT).show()
+        Handler().postDelayed({ _doubleBackToExitPressedOnce = false }, 2000)
     }
 
     private fun takeScreenshot(roomCode: String) {
@@ -232,7 +266,15 @@ class StartGameActivity : AppCompatActivity() {
                         maxplayers = (snapshot.get("maxPlayers") as Long).toInt()
                         playersJoined = (snapshot.get("playersCount") as Long).toInt()
                         if (maxplayers == playersJoined) {
-                            start_game_button.visibility = View.VISIBLE
+                            object : CountDownTimer(2000, 1000) {
+                                override fun onFinish() {
+                                    start_game_button.visibility = View.VISIBLE
+                                }
+
+                                override fun onTick(millisUntilFinished: Long) {
+                                }
+
+                            }.start()
                         }
                     } else {
                         Log.d(TAG, "Current data: null")
@@ -260,6 +302,12 @@ class StartGameActivity : AppCompatActivity() {
                     Log.d("Fetch", "Document is: ${doc.data}")
                 }
                 start_game_recyclerView.adapter = adapter
+                start_game_recyclerView.addItemDecoration(
+                    DividerItemDecoration(
+                        this,
+                        DividerItemDecoration.VERTICAL
+                    )
+                )
 
 
             }

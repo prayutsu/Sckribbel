@@ -1,12 +1,17 @@
 package com.prayutsu.sckribbel.play
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Bundle
-import android.os.CountDownTimer
-import android.os.Handler
+import android.media.AudioManager
+import android.media.SoundPool
+import android.os.*
 import android.util.Log
+import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -30,6 +35,7 @@ import com.prayutsu.sckribbel.room.WordsArray
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.custom_toast.*
 import java.util.*
 import kotlin.math.min
 
@@ -54,6 +60,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     var timerFinished = false
     var finishTimer = false
     var flagOfWritingFinishTimer = false
+    var text = ""
 
     var count = 0
     var roundNo = 1
@@ -71,18 +78,30 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     var nearlyEqual = false
     private val guessAdapter = GroupAdapter<GroupieViewHolder>()
     private val leaderboardAdapter = GroupAdapter<GroupieViewHolder>()
+    lateinit var soundPool: SoundPool
+    var correctGuessSound: Int? = null
+    var penaltySound: Int? = null
 
+    var colorArray = listOf<Int>(
+        Color.parseColor("#fe548b"),
+        Color.parseColor("#feaa46"),
+        Color.parseColor("#43bcfe"),
+        Color.parseColor("#3fdec3"),
+        Color.parseColor("#a97cf4"),
+        Color.parseColor("#f9b15a")
+    )
 
     companion object {
         val TAG = "Game Activity"
         val playersList = mutableListOf<Player>()
         var myPaintView: PaintView? = null
-        var seekProgress = 30
+        var seekProgress = 0
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        supportActionBar?.hide()
 
         roomCode = intent.getStringExtra(StartJoinActivity.JOIN_USER_KEY) ?: return
         currentUser = intent.getParcelableExtra(SignupActivity.USER_KEY_SIGNUP)
@@ -95,11 +114,16 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         myPaintView?.invalidate()
         myPaintView?.addDatabaseListeners()
 
+        soundPool = SoundPool(2, AudioManager.STREAM_MUSIC, 0)
+        correctGuessSound = soundPool.load(applicationContext, R.raw.correct_guess, 1)
+        penaltySound = soundPool.load(applicationContext, R.raw.cheating, 1)
+
         chat_log_recyclerview.adapter = guessAdapter
         val linearLayoutManager = LinearLayoutManager(this)
         chat_log_recyclerview.layoutManager = linearLayoutManager
 
         leaderboard_recyclerview.adapter = leaderboardAdapter
+
 
         chat_log_recyclerview.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
             override fun onLayoutChange(
@@ -125,10 +149,11 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         })
 
         guess_button.setOnClickListener {
-            if (guess_editText.text != null)
+            if (guess_editText.text.toString() != "")
                 performGuess()
-            else
+            else {
                 return@setOnClickListener
+            }
         }
         color_pallette.setOnClickListener(this)
         eraser.setOnClickListener(this)
@@ -146,7 +171,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         checkRank()
         roundListener()
         leaderBoardListener()
-//        countListener()
         listenCorrectGuessNum()
     }
 
@@ -159,6 +183,15 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         this._doubleBackToExitPressedOnce = true
         Toast.makeText(this, "Press again to quit", Toast.LENGTH_SHORT).show()
         Handler().postDelayed({ _doubleBackToExitPressedOnce = false }, 2000)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (currentFocus != null) {
+            val imm: InputMethodManager =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     override fun onClick(view: View) {
@@ -281,22 +314,17 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             first_word_textview.isEnabled = true
             second_word_textview.isEnabled = true
             third_word_textview.isEnabled = true
-//            someone_choosing_a_word_textview.visibility = View.INVISIBLE
 
         } else {
             eraser.visibility = View.INVISIBLE
             color_pallette.visibility = View.INVISIBLE
             clear_button.visibility = View.INVISIBLE
             stroke_imageButton.visibility = View.INVISIBLE
-
-
             choose_a_word_textview.visibility = View.INVISIBLE
             first_word_textview.visibility = View.INVISIBLE
             second_word_textview.visibility = View.INVISIBLE
             third_word_textview.visibility = View.INVISIBLE
             myPaintView?.allowDraw = false
-//            someone_choosing_a_word_textview.visibility = View.INVISIBLE
-
         }
     }
 
@@ -309,7 +337,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             finishTimer = false
             timerFinished = false
             flagOfWritingFinishTimer = false
-//            writeNumGuessed()
+            show_correct_word_textview.visibility = View.INVISIBLE
             resetCorrectGuessNum()
             showViewToPlayer()
         } else {
@@ -355,7 +383,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         .addOnSuccessListener {
                             Log.d(TAG, "turn updated: $currentTurnInGame")
                         }
-
+                    chosen_word_textview.text = ""
                 }
             }
         currentDrawerTimer.start()
@@ -367,14 +395,35 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         otherPlayerTimer =
             object : CountDownTimer(90000, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
+                    show_correct_word_textview.visibility = View.INVISIBLE
                     timerFinished = false
                     timer_textview.text = (millisUntilFinished / 1000).toString()
                     timeRemaining = (millisUntilFinished / 1000).toInt()
-                }
 
+                    val l = chosenWordByDrawer.length
+                    val charAt0 = chosenWordByDrawer[0]
+                    val charAtlby2 = chosenWordByDrawer[l / 2]
+                    if (timeRemaining == 30 && !currentPlayer?.currentDrawer!!) {
+                        text = charAt0 + text.substring(1)
+                        chosen_word_textview.text = text
+                    }
+                    if (timeRemaining == 15 && !currentPlayer?.currentDrawer!!) {
+                        text = text.substring(0, (l / 2) * 2) + charAtlby2 +
+                                text.substring((l / 2) * 2 + 1)
+                        chosen_word_textview.text = text
+                    }
+
+                }
                 override fun onFinish() {
+                    if (!currentPlayer?.currentDrawer!!) {
+                        show_correct_word_textview.visibility = View.VISIBLE
+                        show_correct_word_textview.text =
+                            "The correct word was \" $chosenWordByDrawer !! \""
+                    }
                     timer_textview.text = ""
                     timerFinished = true
+                    chosen_word_textview.text = ""
+
                 }
             }
         otherPlayerTimer?.start()
@@ -405,7 +454,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     Log.d(TAG, "Timer start : ${snapshot.data}")
                     startTimer = snapshot.get("startTimer") as Boolean
 
-                    if (startTimer) {
+                    if (startTimer && !currentPlayer?.currentDrawer!!) {
                         count = 0
                         startTimer()
                         timerFinished = false
@@ -469,8 +518,32 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         when (dc.type) {
                             DocumentChange.Type.ADDED -> {
                                 val username = dc.document.getString("username").toString()
-                                val award = (dc.document.get("reward") as Long).toInt().toString()
-                                Toast.makeText(this, "$username +$award", Toast.LENGTH_SHORT).show()
+                                val award = (dc.document.get("reward") as Long).toInt()
+                                val layout: View = layoutInflater.inflate(
+                                    R.layout.custom_toast,
+                                    custom_toast_layout
+                                )
+                                val tv =
+                                    layout.findViewById(R.id.points_awarded_textview) as TextView
+//
+                                Log.d("Toast", "Executing")
+                                if (award > 0) {
+                                    points_awarded_textview?.text = "$username  + $award points"
+                                    val toast = Toast(applicationContext)
+                                    toast.duration = Toast.LENGTH_SHORT
+                                    toast.view = layout
+                                    toast.setGravity(Gravity.CENTER_VERTICAL, 0, -200);
+                                    toast.show()
+                                } else {
+                                    tv.text = "$username  - ${-award} points"
+                                    val toast = Toast(applicationContext)
+                                    toast.duration = Toast.LENGTH_SHORT
+                                    toast.view = layout
+                                    toast.setGravity(Gravity.CENTER_VERTICAL, 0, -200);
+                                    toast.show()
+                                }
+
+//                                Toast.makeText(this, "$username +$award", Toast.LENGTH_SHORT).show()
                             }
                             DocumentChange.Type.MODIFIED -> {
                                 Log.d(TAG, "Modified city: ${dc.document.data}")
@@ -694,10 +767,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         if (myUid == uid) {
                             awardPoints(uid, reward, username, drawerReward)
                             writeDrawerReward(drawerReward)
-//                                        val ref = db.collection("rooms").document(roomCode)
-//                                            .collection("game").document("numberGuessed")
-//                                        ref
-//                                            .update("numGuessed", count)
+
                             val ref = db.collection("rooms").document(roomCode)
                                 .collection("correctGuess")
 
@@ -727,26 +797,36 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         playerUid: String, timeRemain: Int, timestamp: Long
     ) {
 
+
         val checkGuess = guessWord.toLowerCase()
         val correctWord = chosenWordByDrawer.toLowerCase()
         val l1 = checkGuess.length
         val l2 = correctWord.length
+        val l: Int
         if (l1 != l2) {
-            val l = min(l1, l2)
-            checkNearlyEqual(l, checkGuess, correctWord)
+            l = min(l1, l2)
+        } else {
+            l = l1
         }
+        checkNearlyEqual(l, checkGuess, correctWord)
 
-
-        var guessMessage = GuessText("")
+        val guessMessage = GuessText("")
         guessMessage.username = username
         guessMessage.profileImageUrl = profileImageUrl
-
+        val random = Random()
+        val index = random.nextInt(21) + 1
+//        guessMessage.colorPlayer = colorArrayPlayers[index]
 
         if (!timerFinished) {
             if (checkGuess == correctWord) {
                 if (username == currentDrawerUsername) {
+                    guessMessage.textColor = Color.parseColor("#c62828")
                     guessMessage.guessText = "$username is penalized with -100 points!"
                     guessAdapter.add(guessMessage)
+                    nearlyEqual = false
+                    vibrate()
+                    soundPool.play(penaltySound!!, 1.0F, 1.0F, 0, 0, 1.0F);
+
                     Log.d("GuessingCorrect", "username == currentDrawerUsername getting executed")
 
                     chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
@@ -764,8 +844,11 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 } else {
                     if (!hasAlreadyGuessed) {
                         guessMessage.guessText = "$username guessed the correct word!"
+                        guessMessage.textColor = Color.parseColor("#4caf50")
                         guessAdapter.add(guessMessage)
+                        vibrate()
                         Log.d("GuessingCorrect", "!hasAlreadyGuessed getting executed")
+                        soundPool.play(correctGuessSound!!, 1.0F, 1.0F, 0, 0, 1.0F);
 
                         chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
 
@@ -791,15 +874,14 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     } else {
                         guessMessage.guessText = "$username already guessed the correct word!"
                         guessAdapter.add(guessMessage)
+                        guessMessage.textColor = Color.parseColor("#07DD19")
                         chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
                         Log.d("GuessingCorrect", "!hasAlreadyGuessed  else getting executed")
-
-                        //Don't award points
                     }
                 }
             } else if (nearlyEqual && !hasAlreadyGuessed) {
                 if (username == currentDrawerUsername) {
-                    guessMessage.guessText = "$username is penalized with -100 points!"
+                    guessMessage.guessText = guessWord
                     guessAdapter.add(guessMessage)
                     Log.d("GuessingCorrect", "nearlu eequal if getting executed")
                     chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
@@ -876,7 +958,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 Log.w(TAG, "Error adding document", e)
             }
 
-        guess_editText.text.clear()
+        guess_editText.text?.clear()
 
     }
 
@@ -989,12 +1071,33 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
                 if (snapshot != null && snapshot.exists()) {
                     chosenWordByDrawer = snapshot.getString("chosenWord").toString()
+                    if (currentPlayer?.currentDrawer!!) {
+                        chosen_word_textview.text = chosenWordByDrawer
+                    } else {
+                        text = ""
+                        val l = chosenWordByDrawer.length
+                        for (i in 0..l - 1) {
+                            text += "_ "
+                        }
+                        chosen_word_textview.text = text
+                    }
                     Log.d(TAG, "Current word: $chosenWordByDrawer")
 
                 } else {
                     Log.d(TAG, "Current data in word : null")
                 }
             }
+    }
+
+    private fun vibrate() {
+        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+// Vibrate for 500 milliseconds
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            v.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            //deprecated in API 26
+            v.vibrate(200)
+        }
     }
 
     private fun findMaxPlayers() {
@@ -1041,6 +1144,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         intent.putExtra(ROOM_CODE, roomCode)
                         intent.flags =
                             Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        intent.putExtra(roomCode, ROOM_CODE)
                         startActivity(intent)
                         overridePendingTransition(R.anim.slide_out_bottom, R.anim.slide_in_bottom);
                     }
@@ -1114,50 +1218,18 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun updateRecyclerView() {
+        var colorCount = -1
         playersList.sort()
         if (leaderboardAdapter.itemCount > 0) {
             leaderboardAdapter.clear()
         }
         for (player in playersList) {
-            leaderboardAdapter.add(LeaderboardItem(player))
+            ++colorCount
+            val bColor = colorArray[colorCount]
+            leaderboardAdapter.add(LeaderboardItem(player, bColor))
         }
 
     }
-
-//    private fun countListener() {
-//        val ref = db.collection("rooms").document(roomCode)
-//            .collection("game").document("numberGuessed")
-//        ref
-//            .addSnapshotListener { snapshot, e ->
-//                if (e != null) {
-//                    Log.w(TAG, "Listen failed.", e)
-//                    return@addSnapshotListener
-//                }
-//
-//                if (snapshot != null && snapshot.exists()) {
-//                    Log.d(TAG, "Current data: ${snapshot.data}")
-//                    count = (snapshot.get("numGuessed") as Long).toInt()
-//                    if (count == maxPlayersNum - 1) {
-//                        if (currentPlayer?.currentDrawer!!) {
-//                            currentDrawerTimer.cancel()
-//                            currentDrawerTimer.onFinish()
-//                        } else {
-//                            otherPlayerTimer?.cancel()
-//                            otherPlayerTimer?.onFinish()
-//                        }
-//                    }
-//                } else {
-//                    Log.d(TAG, "Current data: null")
-//                }
-//            }
-//    }
-
-//    private fun writeNumGuessed() {
-//        val ref = db.collection("rooms").document(roomCode)
-//            .collection("game").document("numberGuessed")
-//        ref
-//            .update("numGuessed", 0)
-//    }
 
     private fun resetCorrectGuessNum() {
         val ref = db.collection("rooms").document(roomCode)

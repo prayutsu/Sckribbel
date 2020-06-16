@@ -21,8 +21,8 @@ import kotlin.properties.Delegates
 
 
 class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
-    var width: Int? = 100
-    var height: Int? = 100
+    var width: Int? = 150
+    var height: Int? = 150
 
     private var scale = 1f
     var chosenColor = Color.BLACK
@@ -176,7 +176,7 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
     }
 
     fun setStrokeWidth(progress: Int) {
-        var strokeWidth: Float = (progress / 3).toFloat()
+        var strokeWidth: Float = (progress / 2).toFloat()
         paint.strokeWidth = strokeWidth
         chosenWidth = strokeWidth
     }
@@ -218,6 +218,5 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         paint.style = Paint.Style.STROKE
         paint.strokeJoin = Paint.Join.ROUND
         paint.strokeCap = Paint.Cap.ROUND
-        paint.strokeWidth = 12f
     }
 }

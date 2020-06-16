@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.prayutsu.sckribbel">
-
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -9,10 +9,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".play.GameActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/GameTheme"></activity>
+            android:theme="@style/GameTheme">
+
+        </activity>
         <activity
             android:name=".register.SplashActivity"
             android:theme="@style/SplashTheme">
@@ -27,7 +30,13 @@
         <activity android:name=".room.StartJoinActivity" />
         <activity android:name=".room.StartGameActivity" />
         <activity android:name=".room.GameResultsActivity" />
-        <activity android:name=".room.RoomActivity"></activity>
+        <activity
+            android:name=".room.RoomActivity"
+            android:noHistory="false"></activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
 
     </application>
 

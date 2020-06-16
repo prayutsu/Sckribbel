@@ -3,15 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:minWidth="20dp"
+    android:minHeight="20dp"
+    android:paddingBottom="4dp"
+    android:layoutDirection="rtl">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/player_imageView"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:civ_border_width="2dp"
+        app:civ_border_color="#16161d"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/fui_idp_button_background_email" />
 
@@ -19,23 +24,29 @@
         android:id="@+id/player_name_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:fontFamily="@font/skranji"
         android:text="PlayerName"
         android:textColor="#000000"
-        android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/player_imageView"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@+id/player_imageView"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/player_guess_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
-        android:maxWidth="180dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/textview_shape"
+        android:fontFamily="@font/chewy"
+        android:maxWidth="130dp"
+        android:minWidth="20dp"
+        android:padding="8dp"
         android:text="Guess"
         android:textColor="#000000"
-        app:layout_constraintStart_toEndOf="@+id/player_imageView"
+        app:layout_constraintEnd_toStartOf="@+id/player_imageView"
         app:layout_constraintTop_toBottomOf="@+id/player_name_textView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

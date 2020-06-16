@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".room.StartGameActivity">
+    tools:context=".room.StartGameActivity"
+    android:background="#e1f5fe">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/start_game_recyclerView"
@@ -22,44 +23,50 @@
 
     <Button
         android:id="@+id/start_game_button"
+        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton.Icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="140dp"
+        android:layout_marginBottom="120dp"
+        android:elevation="@dimen/default_slider_bar_height"
         android:text="Start game"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/start_game_recyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/roomcode_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="60dp"
-        android:layout_marginBottom="100dp"
-        android:textColor="#000000"
+        android:layout_marginBottom="60dp"
+        android:elegantTextHeight="true"
+        android:elevation="@dimen/default_slider_bar_height"
+        android:text="jfs"
         android:textSize="20sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
+    <ImageButton
         android:id="@+id/copy_button"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginEnd="100dp"
-        android:layout_marginBottom="95dp"
-        android:text="copy"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_marginStart="16dp"
+        android:background="@drawable/copy"
+        android:elevation="@dimen/default_slider_bar_height"
+        app:layout_constraintBottom_toBottomOf="@+id/roomcode_textview"
+        app:layout_constraintStart_toEndOf="@+id/roomcode_textview"
+        app:layout_constraintTop_toTopOf="@+id/roomcode_textview" />
 
     <ImageButton
         android:id="@+id/imageButton_share"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginBottom="95dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/share"
+        android:elevation="@dimen/cardview_default_radius"
+        app:layout_constraintBottom_toBottomOf="@+id/copy_button"
         app:layout_constraintStart_toEndOf="@+id/copy_button"
-        app:srcCompat="@drawable/gradient_room" />
+        app:layout_constraintTop_toTopOf="@+id/copy_button" />
 </androidx.constraintlayout.widget.ConstraintLayout>

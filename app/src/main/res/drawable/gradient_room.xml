@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape>
-            <gradient android:startColor="#61F642" android:endColor="#1E8A08" android:centerColor="#2CCA0B" android:angle="45" android:gradientRadius="@dimen/cardview_default_elevation" />
+            <gradient android:endColor="#26bab0" android:startColor="#4ac8e0" android:centerColor="#3cc2cd" />
         </shape>
     </item>
 </selector>

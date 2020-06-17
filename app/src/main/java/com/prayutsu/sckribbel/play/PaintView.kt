@@ -2,6 +2,7 @@ package com.prayutsu.sckribbel.play
 
 import android.content.Context
 import android.graphics.*
+import android.os.AsyncTask
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -39,6 +40,7 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
     private var currentDrawSegment: DrawSegment? = null
     var ref: DatabaseReference? = null
     var allowDraw = false
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         scale = Math.min(1.0f * w / width!!, 1.0f * h / height!!)
@@ -86,64 +88,112 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         path.lineTo(previousX, previousY)
         canvas!!.drawPath(path, paint)
         path.reset()
-        val sColor: Int = paint.color
-        val cWidth: Float = paint.strokeWidth
-        val segment = DrawSegment()
-        for (point in currentDrawSegment!!.points) {
-            segment.addPoint((point.x), (point.y))
-            segment.addColor(sColor)
-            segment.addStrokeWidth(cWidth)
-        }
+//        val sColor: Int = paint.color
+//        val cWidth: Float = paint.strokeWidth
+        saveDrawinf().execute(currentDrawSegment)
 
-        val drawId = UUID.randomUUID().toString().substring(0, 15)
+//        val segment = DrawSegment()
+//        segment.addColor(sColor)
+//        segment.addStrokeWidth(cWidth)
+//        for (point in currentDrawSegment!!.points) {
+//            segment.addPoint((point.x), (point.y))
+//
+//        }
 
-
-        val db = FirebaseDatabase.getInstance()
-
-        val keyRef = db.getReference("games/$roomCodePaintView/drawing/$drawId")
-        Log.d("MainActivity", "Saving segment to firebase")
-        keyRef
-            .setValue(segment)
+//        val drawId = UUID.randomUUID().toString().substring(0, 15)
+//
+//        val db = FirebaseDatabase.getInstance()
+//
+//        val keyRef = db.getReference("games/$roomCodePaintView/drawing/$drawId")
+//        Log.d("MainActivity", "Saving segment to firebase")
+//        keyRef
+//            .setValue(segment)
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (allowDraw) {
-            val x = event.x
-            val y = event.y
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    Log.d("Main", "User touched!")
-                    touchStart(x, y)
-                    invalidate()
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    Log.d("Main", "User is moving finger!")
-                    touchMove(x, y)
-                    invalidate()
-                }
-                MotionEvent.ACTION_UP -> {
-                    Log.d("Main", "User lifted finger up!")
-                    touchUp()
-                    invalidate()
+    inner class TouchEvent : AsyncTask<String, String, String>(), View.OnTouchListener {
+        override fun doInBackground(vararg params: String?): String {
+            return "kjd"
+        }
+
+
+        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+            if (allowDraw) {
+                val x = event?.x
+                val y = event?.y
+                when (event?.action) {
+                    MotionEvent.ACTION_DOWN -> {
+//                    Log.d("Main", "User touched!")
+                        if (x != null && y != null) {
+                            touchStart(x, y)
+
+                        }
+                        invalidate()
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+//                    Log.d("Main", "User is moving finger!")
+                        if (x != null && y != null) {
+                            touchMove(x, y)
+                        }
+                        invalidate()
+                    }
+                    MotionEvent.ACTION_UP -> {
+//                    Log.d("Main", "User lifted finger up!")
+                        touchUp()
+                        invalidate()
+                    }
                 }
             }
+            return true
         }
-        return true
+
     }
+
+//    override fun onTouchEvent(event: MotionEvent): Boolean {
+//        if (allowDraw) {
+//            val x = event.x
+//            val y = event.y
+//            when (event.action) {
+//                MotionEvent.ACTION_DOWN -> {
+////                    Log.d("Main", "User touched!")
+//                    touchStart(x, y)
+//                    invalidate()
+//                }
+//                MotionEvent.ACTION_MOVE -> {
+////                    Log.d("Main", "User is moving finger!")
+//                    touchMove(x, y)
+//                    invalidate()
+//                }
+//                MotionEvent.ACTION_UP -> {
+////                    Log.d("Main", "User lifted finger up!")
+//                    touchUp()
+//                    invalidate()
+//                }
+//            }
+//        }
+//        return true
+//    }
 
     fun addDatabaseListeners() {
         ref!!.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 val segment = dataSnapshot.getValue(DrawSegment::class.java)
+
+
                 val sColor = segment?.color
                 val sWidth = segment?.strokeWidth
                 if (sColor != null) {
                     paint.color = sColor
                 }
                 paint.strokeWidth = sWidth ?: return
-                canvas!!.drawPath(getPathForPoints(segment!!.points, scale), paint)
+
+                val task = ShowDrawing()
+
+                task.execute(segment)
+//                val path = getPathForPoints(segment!!.points, scale)
+//                canvas!!.drawPath(path, paint)
+//                invalidate()
                 Log.d("Fetch", "Drawing fetching")
-                invalidate()
+
             }
 
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
@@ -181,9 +231,52 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         chosenWidth = strokeWidth
     }
 
+    inner class saveDrawinf : AsyncTask<DrawSegment, Int, DrawSegment>() {
+        override fun doInBackground(vararg params: DrawSegment?): DrawSegment {
+            val segment = DrawSegment()
+            for (point in params[0]!!.points) {
+                segment.addPoint((point.x), (point.y))
+            }
+            return segment
+        }
+
+        override fun onPostExecute(result: DrawSegment?) {
+            super.onPostExecute(result)
+            if (result != null) {
+                result.addColor(paint.color)
+                result.addStrokeWidth(paint.strokeWidth)
+                val drawId = UUID.randomUUID().toString().substring(0, 15)
+
+                val db = FirebaseDatabase.getInstance()
+
+                val keyRef = db.getReference("games/$roomCodePaintView/drawing/$drawId")
+                Log.d("MainActivity", "Saving segment to firebase")
+                keyRef
+                    .setValue(result)
+            }
+        }
+    }
+
+    inner class ShowDrawing : AsyncTask<DrawSegment, String, Path>() {
+        override fun doInBackground(vararg params: DrawSegment?): Path {
+            val path = getPathForPoints(params[0]!!.points, scale)
+            Log.d("AsyncTask doinbg", "doInBackground: ")
+            return path
+        }
+
+        override fun onPostExecute(result: Path?) {
+            super.onPostExecute(result)
+            Log.d("AsyncTask onpost execute", "onPostExecute: ")
+            if (result != null) {
+                canvas!!.drawPath(result, paint)
+            }
+            invalidate()
+        }
+
+    }
 
     companion object {
-        fun getPathForPoints(points: List<Point?>, scale: Float): Path {
+        fun getPathForPoints(points: List<Point>, scale: Float): Path {
             val path = Path()
             var current = points[0]
             path.moveTo(
@@ -211,6 +304,7 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
             return path
         }
     }
+
 
     init {
         paint.isAntiAlias = true

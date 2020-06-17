@@ -107,6 +107,9 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         currentUser = intent.getParcelableExtra(SignupActivity.USER_KEY_SIGNUP)
         myPaintView = drawing_board
         myPaintView?.roomCodePaintView = roomCode
+        val task = myPaintView?.TouchEvent()
+        task?.execute("abhay")
+        myPaintView?.setOnTouchListener(task)
 
         myPaintView?.ref = fbdb.getReference("games/$roomCode/drawing")
 
@@ -1167,8 +1170,8 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         segment.addPoint(260, 0)
         segment.addPoint(266, 0)
         segment.addPoint(272, 0)
-        segment.addPoint(278, 0)
 
+        segment.addStrokeWidth(20f)
         myPaintView?.invalidate()
         myPaintView?.canvas!!.drawPath(
             PaintView.getPathForPoints(segment.points, scale),

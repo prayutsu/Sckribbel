@@ -10,6 +10,8 @@ import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
@@ -82,6 +84,15 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     var correctGuessSound: Int? = null
     var penaltySound: Int? = null
 
+
+    lateinit var fade_in: Animation
+    lateinit var fade_out: Animation
+    lateinit var top_anim: Animation
+    lateinit var bottom_anim: Animation
+    lateinit var ltr: Animation
+    lateinit var rtl: Animation
+    lateinit var rtl_remove: Animation
+
     var colorArray = listOf<Int>(
         Color.parseColor("#fe548b"),
         Color.parseColor("#feaa46"),
@@ -95,14 +106,26 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         val TAG = "Game Activity"
         val playersList = mutableListOf<Player>()
         var myPaintView: PaintView? = null
-        var seekProgress = 0
+        var seekProgress = 10
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
+        fade_in = AnimationUtils.loadAnimation(this, R.anim.fade_in_slow)
+        fade_out = AnimationUtils.loadAnimation(this, R.anim.fade_out_slow)
+        top_anim = AnimationUtils.loadAnimation(this, R.anim.top_animation)
+        bottom_anim = AnimationUtils.loadAnimation(this, R.anim.bottom_animation)
+        ltr = AnimationUtils.loadAnimation(this, R.anim.left_animation)
+        rtl = AnimationUtils.loadAnimation(this, R.anim.right_animation)
+        rtl_remove = AnimationUtils.loadAnimation(this, R.anim.right_to_left_invisible)
 
+        drawing_board.animation = top_anim
+        chat_log_recyclerview.animation = bottom_anim
+        leaderboard_recyclerview.animation = bottom_anim
+        clock_imageview.animation = ltr
+        logo_game.animation = rtl
         roomCode = intent.getStringExtra(StartJoinActivity.JOIN_USER_KEY) ?: return
         currentUser = intent.getParcelableExtra(SignupActivity.USER_KEY_SIGNUP)
         myPaintView = drawing_board
@@ -162,6 +185,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         eraser.setOnClickListener(this)
         clear_button.setOnClickListener(this)
         stroke_imageButton.setOnClickListener(this)
+        pencil.setOnClickListener(this)
 
         detectCurrentDrawerUsername()
         findMaxPlayers()
@@ -201,20 +225,31 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         if (currentPlayer?.currentDrawer!!) {
             when (view.id) {
                 R.id.first_word_textview -> {
+                    eraser.visibility = View.VISIBLE
+                    pencil.visibility = View.VISIBLE
+                    color_pallette.visibility = View.VISIBLE
+                    clear_button.visibility = View.VISIBLE
+                    stroke_imageButton.visibility = View.VISIBLE
+                    first_word_textview.animation = fade_out
+                    second_word_textview.animation = fade_out
+                    third_word_textview.animation = fade_out
+                    eraser.animation = ltr
+                    color_pallette.animation = ltr
+                    clear_button.animation = ltr
+                    stroke_imageButton.animation = ltr
+                    pencil.animation = ltr
+                    choose_a_word_textview.animation = top_anim
                     activateBoard()
                     timerForChoosingWord.cancel()
                     uploadChosenWord(first_word_textview.text.toString())
                     first_word_textview.isEnabled = false
                     second_word_textview.isEnabled = false
                     third_word_textview.isEnabled = false
-                    choose_a_word_textview.visibility = View.INVISIBLE
-                    first_word_textview.visibility = View.INVISIBLE
-                    second_word_textview.visibility = View.INVISIBLE
-                    third_word_textview.visibility = View.INVISIBLE
-                    eraser.visibility = View.VISIBLE
-                    color_pallette.visibility = View.VISIBLE
-                    clear_button.visibility = View.VISIBLE
-                    stroke_imageButton.visibility = View.VISIBLE
+                    choose_a_word_textview.visibility = View.GONE
+//                    first_word_textview.visibility = View.INVISIBLE
+//                    second_word_textview.visibility = View.INVISIBLE
+//                    third_word_textview.visibility = View.INVISIBLE
+
                     myPaintView?.allowDraw = true
 
                     val timerRef = db.collection("rooms").document(roomCode)
@@ -229,15 +264,26 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 }
                 R.id.second_word_textview -> {
                     activateBoard()
+                    first_word_textview.animation = fade_out
+                    second_word_textview.animation = fade_out
+                    third_word_textview.animation = fade_out
+                    eraser.animation = ltr
+                    color_pallette.animation = ltr
+                    clear_button.animation = ltr
+                    stroke_imageButton.animation = ltr
+                    pencil.animation = ltr
+
                     timerForChoosingWord.cancel()
                     uploadChosenWord(second_word_textview.text.toString())
                     first_word_textview.isEnabled = false
                     second_word_textview.isEnabled = false
                     third_word_textview.isEnabled = false
-                    choose_a_word_textview.visibility = View.INVISIBLE
-                    first_word_textview.visibility = View.INVISIBLE
-                    second_word_textview.visibility = View.INVISIBLE
-                    third_word_textview.visibility = View.INVISIBLE
+                    choose_a_word_textview.visibility = View.GONE
+//                    first_word_textview.visibility = View.INVISIBLE
+//                    second_word_textview.visibility = View.INVISIBLE
+//                    third_word_textview.visibility = View.INVISIBLE
+                    eraser.visibility = View.VISIBLE
+                    pencil.visibility = View.VISIBLE
                     eraser.visibility = View.VISIBLE
                     color_pallette.visibility = View.VISIBLE
                     clear_button.visibility = View.VISIBLE
@@ -256,15 +302,25 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 }
                 R.id.third_word_textview -> {
                     activateBoard()
+                    first_word_textview.animation = fade_out
+                    second_word_textview.animation = fade_out
+                    third_word_textview.animation = fade_out
+                    eraser.animation = ltr
+                    color_pallette.animation = ltr
+                    clear_button.animation = ltr
+                    stroke_imageButton.animation = ltr
+                    pencil.animation = ltr
+
                     timerForChoosingWord.cancel()
                     uploadChosenWord(third_word_textview.text.toString())
                     third_word_textview.isEnabled = false
                     second_word_textview.isEnabled = false
                     first_word_textview.isEnabled = false
-                    choose_a_word_textview.visibility = View.INVISIBLE
-                    first_word_textview.visibility = View.INVISIBLE
-                    second_word_textview.visibility = View.INVISIBLE
-                    third_word_textview.visibility = View.INVISIBLE
+                    choose_a_word_textview.visibility = View.GONE
+//                    first_word_textview.visibility = View.INVISIBLE
+//                    second_word_textview.visibility = View.INVISIBLE
+//                    third_word_textview.visibility = View.INVISIBLE
+                    pencil.visibility = View.VISIBLE
                     eraser.visibility = View.VISIBLE
                     color_pallette.visibility = View.VISIBLE
                     clear_button.visibility = View.VISIBLE
@@ -296,6 +352,10 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     val cdd = DialogStroke(this)
                     cdd.show()
                 }
+                R.id.pencil -> {
+                    myPaintView?.paint?.color = Color.BLACK
+                    myPaintView?.paint?.strokeWidth = 15f
+                }
             }
         }
     }
@@ -306,6 +366,10 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         if (currentPlayer?.currentDrawer!!) {
             setWords()
             wordChoosingTimer()
+            first_word_textview.animation = fade_in
+            second_word_textview.animation = fade_in
+            third_word_textview.animation = fade_in
+            choose_a_word_textview.animation = fade_in
             choose_a_word_textview.visibility = View.VISIBLE
             first_word_textview.visibility = View.VISIBLE
             second_word_textview.visibility = View.VISIBLE
@@ -319,14 +383,20 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             third_word_textview.isEnabled = true
 
         } else {
-            eraser.visibility = View.INVISIBLE
-            color_pallette.visibility = View.INVISIBLE
-            clear_button.visibility = View.INVISIBLE
-            stroke_imageButton.visibility = View.INVISIBLE
-            choose_a_word_textview.visibility = View.INVISIBLE
-            first_word_textview.visibility = View.INVISIBLE
-            second_word_textview.visibility = View.INVISIBLE
-            third_word_textview.visibility = View.INVISIBLE
+            eraser.animation = rtl_remove
+            color_pallette.animation = rtl_remove
+            clear_button.animation = rtl_remove
+            stroke_imageButton.animation = rtl_remove
+            pencil.animation = rtl_remove
+            pencil.visibility = View.GONE
+            eraser.visibility = View.GONE
+            color_pallette.visibility = View.GONE
+            clear_button.visibility = View.GONE
+            stroke_imageButton.visibility = View.GONE
+            choose_a_word_textview.visibility = View.GONE
+            first_word_textview.visibility = View.GONE
+            second_word_textview.visibility = View.GONE
+            third_word_textview.visibility = View.GONE
             myPaintView?.allowDraw = false
         }
     }
@@ -340,14 +410,13 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             finishTimer = false
             timerFinished = false
             flagOfWritingFinishTimer = false
-            show_correct_word_textview.visibility = View.INVISIBLE
+            show_correct_word_textview.visibility = View.GONE
             resetCorrectGuessNum()
             showViewToPlayer()
         } else {
             showViewToPlayer()
         }
     }
-
 
     private fun startTimerCurrentDrawer() {
         currentDrawerTimer =
@@ -398,7 +467,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         otherPlayerTimer =
             object : CountDownTimer(90000, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
-                    show_correct_word_textview.visibility = View.INVISIBLE
+                    show_correct_word_textview.visibility = View.GONE
                     timerFinished = false
                     timer_textview.text = (millisUntilFinished / 1000).toString()
                     timeRemaining = (millisUntilFinished / 1000).toInt()
@@ -419,9 +488,10 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 }
                 override fun onFinish() {
                     if (!currentPlayer?.currentDrawer!!) {
+                        show_correct_word_textview.animation = bottom_anim
                         show_correct_word_textview.visibility = View.VISIBLE
                         show_correct_word_textview.text =
-                            "The correct word was \" $chosenWordByDrawer !! \""
+                            "The correct word was \" $chosenWordByDrawer\"!"
                     }
                     timer_textview.text = ""
                     timerFinished = true
@@ -535,18 +605,16 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                                     val toast = Toast(applicationContext)
                                     toast.duration = Toast.LENGTH_SHORT
                                     toast.view = layout
-                                    toast.setGravity(Gravity.CENTER_VERTICAL, 0, -200);
+                                    toast.setGravity(Gravity.TOP, 0, 130);
                                     toast.show()
                                 } else if (award < 0) {
                                     tv.text = "$username  - ${-award} points"
                                     val toast = Toast(applicationContext)
                                     toast.duration = Toast.LENGTH_SHORT
                                     toast.view = layout
-                                    toast.setGravity(Gravity.CENTER_VERTICAL, 0, -200);
+                                    toast.setGravity(Gravity.TOP, 0, 130);
                                     toast.show()
                                 }
-
-//                                Toast.makeText(this, "$username +$award", Toast.LENGTH_SHORT).show()
                             }
                             DocumentChange.Type.MODIFIED -> {
                                 Log.d(TAG, "Modified city: ${dc.document.data}")
@@ -652,11 +720,9 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
         msgRef
             .add(msgMap)
-
     }
 
     private fun writeDrawerReward(drawerReward: Int) {
-
         val drawerRef = db.collection("rooms").document(roomCode)
             .collection("drawerReward")
 
@@ -827,7 +893,8 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     guessMessage.guessText = "$username is penalized with -100 points!"
                     guessAdapter.add(guessMessage)
                     nearlyEqual = false
-                    vibrate()
+                    vibrateExecute().execute("abhay")
+//                    vibrate()
                     soundPool.play(penaltySound!!, 1.0F, 1.0F, 0, 0, 1.0F);
 
                     Log.d("GuessingCorrect", "username == currentDrawerUsername getting executed")
@@ -849,7 +916,8 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         guessMessage.guessText = "$username guessed the correct word!"
                         guessMessage.textColor = Color.parseColor("#4caf50")
                         guessAdapter.add(guessMessage)
-                        vibrate()
+                        vibrateExecute().execute("garg")
+//                        vibrate()
                         Log.d("GuessingCorrect", "!hasAlreadyGuessed getting executed")
                         soundPool.play(correctGuessSound!!, 1.0F, 1.0F, 0, 0, 1.0F);
 
@@ -890,7 +958,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 } else {
                     guessMessage.guessText = "$username's guess is nearly correct!"
                     guessAdapter.add(guessMessage)
-                    guessMessage.textColor = Color.parseColor("#ffeb3b")
+                    guessMessage.textColor = Color.parseColor("#F6BE1F")
                     nearlyEqual = false
                     Log.d("GuessingCorrect", "nearly equal   else getting executed")
                     chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
@@ -1024,7 +1092,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             override fun onFinish() {
-//                timer_textview.text = "Word Chosen Automatically!"
                 timerRunning = false
                 autoSelectWord()
             }
@@ -1049,9 +1116,10 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     someone_choosing_a_word_textview.text =
                         "$currentDrawerUsername is choosing a word!!"
 
-                    if (!currentPlayer?.currentDrawer!!)
+                    if (!currentPlayer?.currentDrawer!!) {
+                        someone_choosing_a_word_textview.animation = top_anim
                         someone_choosing_a_word_textview.visibility = View.VISIBLE
-                    else
+                    } else
                         someone_choosing_a_word_textview.visibility = View.INVISIBLE
 
                 } else {
@@ -1092,16 +1160,20 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             }
     }
 
-    private fun vibrate() {
-        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-// Vibrate for 500 milliseconds
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            //deprecated in API 26
-            v.vibrate(200)
+    inner class vibrateExecute : AsyncTask<String, String, String>() {
+        override fun doInBackground(vararg params: String?): String {
+            val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                v.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                //deprecated in API 26
+                v.vibrate(200)
+            }
+            return "vibrated"
         }
+
     }
+
 
     private fun findMaxPlayers() {
         val maxPlayersRef = db.collection("rooms").document(roomCode)
@@ -1147,9 +1219,9 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         intent.putExtra(ROOM_CODE, roomCode)
                         intent.flags =
                             Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        intent.putExtra(roomCode, ROOM_CODE)
+                        intent.putExtra(ROOM_CODE, roomCode)
                         startActivity(intent)
-                        overridePendingTransition(R.anim.slide_out_bottom, R.anim.slide_in_bottom);
+//                        this.overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
                     }
                 } else {
                     Log.d(TAG, "Current data: null")
@@ -1158,9 +1230,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun activateBoard() {
-        drawing_board.performClick()
-        drawing_board.performClick()
-
         val segment = DrawSegment()
         val scale = 1.0f
         segment.addColor(Color.BLACK)
@@ -1168,17 +1237,14 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         segment.addPoint(243, 0)
         segment.addPoint(252, 0)
         segment.addPoint(260, 0)
-        segment.addPoint(266, 0)
-        segment.addPoint(272, 0)
 
-        segment.addStrokeWidth(20f)
+        segment.addStrokeWidth(10f)
         myPaintView?.invalidate()
         myPaintView?.canvas!!.drawPath(
             PaintView.getPathForPoints(segment.points, scale),
             myPaintView?.paint ?: return
         )
         val drawId = UUID.randomUUID().toString().substring(0, 15)
-
 
         val db = FirebaseDatabase.getInstance()
 
@@ -1199,7 +1265,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun colorPaletteDisplay() {
-        val mColor = Color.RED
+        val mColor: Int = myPaintView?.paint?.color ?: Color.RED
 
         ColorPickerDialogBuilder
             .with(this)
@@ -1221,6 +1287,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun updateRecyclerView() {
+        leaderboard_recyclerview.scheduleLayoutAnimation()
         var colorCount = -1
         playersList.sort()
         if (leaderboardAdapter.itemCount > 0) {
@@ -1229,7 +1296,8 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         for (player in playersList) {
             ++colorCount
             val bColor = colorArray[colorCount]
-            leaderboardAdapter.add(LeaderboardItem(player, bColor))
+            val item = LeaderboardItem(player, bColor)
+            leaderboardAdapter.add(item)
         }
 
     }

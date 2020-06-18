@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.prayutsu.sckribbel">
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -18,21 +19,32 @@
         </activity>
         <activity
             android:name=".register.SplashActivity"
-            android:theme="@style/SplashTheme">
+            android:theme="@style/SplashTheme"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".register.SignupActivity"></activity>
-        <activity android:name=".register.LoginActivity" />
-        <activity android:name=".room.StartJoinActivity" />
-        <activity android:name=".room.StartGameActivity" />
-        <activity android:name=".room.GameResultsActivity" />
+        <activity
+            android:name=".register.SignupActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".register.LoginActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".room.StartJoinActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".room.StartGameActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".room.GameResultsActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".room.RoomActivity"
-            android:noHistory="false"></activity>
+            android:screenOrientation="portrait"></activity>
 
         <meta-data
             android:name="preloaded_fonts"

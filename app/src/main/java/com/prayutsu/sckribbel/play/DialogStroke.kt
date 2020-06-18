@@ -16,7 +16,7 @@ import com.prayutsu.sckribbel.play.GameActivity.Companion.seekProgress
 class DialogStroke
     (var c: Activity) : Dialog(c), View.OnClickListener {
     var d: Dialog? = null
-    var progressDetected: Int = 0
+    var progressDetected: Int = 20
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)

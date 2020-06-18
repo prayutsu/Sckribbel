@@ -24,7 +24,7 @@ import kotlin.properties.Delegates
 class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
     var width: Int? = 150
     var height: Int? = 150
-
+    var pointsCount = 0
     private var scale = 1f
     var chosenColor = Color.BLACK
     var chosenWidth = 10f
@@ -48,7 +48,6 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         height = h
         bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         canvas = Canvas(bitmap!!)
-        addDatabaseListeners()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -77,37 +76,27 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         val dx = Math.abs(x - previousX)
         val dy = Math.abs(y - previousY)
         if (dx >= 0.0 || dy >= 0.0) {
+            ++pointsCount
             path.quadTo(previousX, previousY, (x + previousX) / 2, (y + previousY) / 2)
             previousX = x
             previousY = y
             currentDrawSegment!!.addPoint(previousX.toInt(), previousY.toInt())
+            if (pointsCount == 100) {
+                pointsCount = 0
+                path.lineTo(previousX, previousY)
+                canvas!!.drawPath(path, paint)
+                saveDrawinf().execute(currentDrawSegment)
+            }
         }
     }
 
     private fun touchUp() {
+        pointsCount = 0
         path.lineTo(previousX, previousY)
         canvas!!.drawPath(path, paint)
         path.reset()
-//        val sColor: Int = paint.color
-//        val cWidth: Float = paint.strokeWidth
         saveDrawinf().execute(currentDrawSegment)
 
-//        val segment = DrawSegment()
-//        segment.addColor(sColor)
-//        segment.addStrokeWidth(cWidth)
-//        for (point in currentDrawSegment!!.points) {
-//            segment.addPoint((point.x), (point.y))
-//
-//        }
-
-//        val drawId = UUID.randomUUID().toString().substring(0, 15)
-//
-//        val db = FirebaseDatabase.getInstance()
-//
-//        val keyRef = db.getReference("games/$roomCodePaintView/drawing/$drawId")
-//        Log.d("MainActivity", "Saving segment to firebase")
-//        keyRef
-//            .setValue(segment)
     }
 
     inner class TouchEvent : AsyncTask<String, String, String>(), View.OnTouchListener {
@@ -122,22 +111,18 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
                 val y = event?.y
                 when (event?.action) {
                     MotionEvent.ACTION_DOWN -> {
-//                    Log.d("Main", "User touched!")
                         if (x != null && y != null) {
                             touchStart(x, y)
-
                         }
                         invalidate()
                     }
                     MotionEvent.ACTION_MOVE -> {
-//                    Log.d("Main", "User is moving finger!")
                         if (x != null && y != null) {
                             touchMove(x, y)
                         }
                         invalidate()
                     }
                     MotionEvent.ACTION_UP -> {
-//                    Log.d("Main", "User lifted finger up!")
                         touchUp()
                         invalidate()
                     }
@@ -148,37 +133,11 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
 
     }
 
-//    override fun onTouchEvent(event: MotionEvent): Boolean {
-//        if (allowDraw) {
-//            val x = event.x
-//            val y = event.y
-//            when (event.action) {
-//                MotionEvent.ACTION_DOWN -> {
-////                    Log.d("Main", "User touched!")
-//                    touchStart(x, y)
-//                    invalidate()
-//                }
-//                MotionEvent.ACTION_MOVE -> {
-////                    Log.d("Main", "User is moving finger!")
-//                    touchMove(x, y)
-//                    invalidate()
-//                }
-//                MotionEvent.ACTION_UP -> {
-////                    Log.d("Main", "User lifted finger up!")
-//                    touchUp()
-//                    invalidate()
-//                }
-//            }
-//        }
-//        return true
-//    }
 
     fun addDatabaseListeners() {
         ref!!.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 val segment = dataSnapshot.getValue(DrawSegment::class.java)
-
-
                 val sColor = segment?.color
                 val sWidth = segment?.strokeWidth
                 if (sColor != null) {
@@ -187,11 +146,8 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
                 paint.strokeWidth = sWidth ?: return
 
                 val task = ShowDrawing()
-
                 task.execute(segment)
-//                val path = getPathForPoints(segment!!.points, scale)
-//                canvas!!.drawPath(path, paint)
-//                invalidate()
+
                 Log.d("Fetch", "Drawing fetching")
 
             }
@@ -226,7 +182,7 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
     }
 
     fun setStrokeWidth(progress: Int) {
-        var strokeWidth: Float = (progress / 2).toFloat()
+        var strokeWidth: Float = (progress).toFloat()
         paint.strokeWidth = strokeWidth
         chosenWidth = strokeWidth
     }
@@ -261,6 +217,7 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
         override fun doInBackground(vararg params: DrawSegment?): Path {
             val path = getPathForPoints(params[0]!!.points, scale)
             Log.d("AsyncTask doinbg", "doInBackground: ")
+
             return path
         }
 
@@ -280,8 +237,8 @@ class PaintView(context: Context, attributeSet: AttributeSet?) : View(context, a
             val path = Path()
             var current = points[0]
             path.moveTo(
-                (scale * current!!.x).toFloat(),
-                (scale * current.y).toFloat()
+                (scale * current!!.x),
+                (scale * current.y)
             )
             var next: Point? = null
             for (i in 1 until points.size) {

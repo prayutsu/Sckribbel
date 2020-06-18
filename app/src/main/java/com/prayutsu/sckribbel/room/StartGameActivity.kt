@@ -1,19 +1,20 @@
 package com.prayutsu.sckribbel.room
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Environment
 import android.os.Handler
+import android.provider.MediaStore
 import android.text.ClipboardManager
-import android.text.format.DateFormat
 import android.util.Log
 import android.view.View
-import android.view.WindowManager
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -32,8 +33,9 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.activity_start_game.*
 import kotlinx.android.synthetic.main.activity_start_join.*
-import java.io.*
-import java.util.*
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.LineNumberReader
 
 
 class StartGameActivity : AppCompatActivity() {
@@ -42,7 +44,7 @@ class StartGameActivity : AppCompatActivity() {
     }
 
     private var _doubleBackToExitPressedOnce = false
-
+    lateinit var bottom_anim: Animation
     lateinit var mediaPlayer: MediaPlayer
     var myUser: User? = null
     private var numQuery: ListenerRegistration? = null
@@ -55,6 +57,11 @@ class StartGameActivity : AppCompatActivity() {
 
         val roomCodeReceived = intent.getStringExtra(ROOM_CODE).toString()
         myUser = intent.getParcelableExtra(USER_KEY_SIGNUP)
+
+        bottom_anim = AnimationUtils.loadAnimation(this, R.anim.bottom_animation)
+        roomcode_textview.animation = bottom_anim
+        copy_button.animation = AnimationUtils.loadAnimation(this, R.anim.right_animation)
+        imageButton_share.animation = AnimationUtils.loadAnimation(this, R.anim.right_animation)
 
         roomcode_textview.text = roomCodeReceived
         roomcode_textview.visibility = View.VISIBLE
@@ -69,23 +76,48 @@ class StartGameActivity : AppCompatActivity() {
         }
 
         imageButton_share.setOnClickListener {
-//            takeScreenshot(roomCodeReceived)
-            val imageUri = Uri.parse(
-                "android.resource://" + packageName
-                        + "/drawable/" + "signn_min2"
-            )
-            val shareIntent = Intent()
-            shareIntent.action = Intent.ACTION_SEND
-            shareIntent.putExtra(Intent.EXTRA_TEXT, "$roomCodeReceived")
-            shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
-            shareIntent.type = "image/*"
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            startActivity(Intent.createChooser(shareIntent, "send"))
+            val roomCode = roomCodeReceived.toLong()
+            try {
+                var imageUri: Uri? = null
+                try {
+                    imageUri = Uri.parse(
+                        MediaStore.Images.Media.insertImage(
+                            this.contentResolver,
+                            BitmapFactory.decodeResource(
+                                resources,
+                                R.drawable.share_app
+                            ), "Play Doodle", "nkdcd ds,mdc "
+                        )
+                    )
+                } catch (e: NullPointerException) {
+                }
+                val text =
+                    "I want to play Do-odle with you!\nSign up if you haven't and join room " +
+                            "by entering the Room Code \"$roomCode\".\n" +
+                            "Believe me this is awesome !!"
+                val shareIntent = Intent()
+                shareIntent.action = Intent.ACTION_SEND
+                shareIntent.putExtra(Intent.EXTRA_TEXT, text)
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
+                shareIntent.putExtra(Intent.EXTRA_TITLE, "Share roomCode via ..")
+                shareIntent.type = "image/*"
+                shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+                startActivity(shareIntent)
+            } catch (ex: ActivityNotFoundException) {
+                Toast.makeText(
+                    this,
+                    "cnkjdnj",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
 
         }
 
 
         start_game_button.setOnClickListener {
+            start_game_button.isEnabled = false
+            progressBar_start_game.visibility = View.VISIBLE
             numQuery?.remove()
             startGame(roomCodeReceived)
         }
@@ -115,58 +147,6 @@ class StartGameActivity : AppCompatActivity() {
         Handler().postDelayed({ _doubleBackToExitPressedOnce = false }, 2000)
     }
 
-    private fun takeScreenshot(roomCode: String) {
-        val now = Date()
-        DateFormat.format("yyyy-MM-dd_hh:mm:ss", now)
-        try {
-            // image naming and path  to include sd card  appending name you choose for file
-            val mPath: String =
-                Environment.getExternalStorageDirectory().toString().toString() + "/" + now + ".jpg"
-
-            // create bitmap screen capture
-            val v1 = window.decorView.rootView
-            v1.isDrawingCacheEnabled = true
-            val bitmap = Bitmap.createBitmap(v1.drawingCache)
-            v1.isDrawingCacheEnabled = false
-            val imageFile = File(mPath)
-            val outputStream = FileOutputStream(imageFile)
-            val quality = 100
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-            outputStream.flush()
-            outputStream.close()
-            send(imageFile, roomCode)
-        } catch (e: Throwable) {
-            // Several error may come out with file handling or DOM
-            e.printStackTrace()
-        }
-    }
-
-    fun screenShot(view: View): Bitmap? {
-        val bitmap = Bitmap.createBitmap(
-            view.width,
-            view.height, Bitmap.Config.ARGB_8888
-        )
-//        val canvas = Canvas(bitmap)
-//        view.draw(canvas)
-        return bitmap
-    }
-
-
-    private fun send(imageFile: File, roomCode: String) {
-//        val uri = Uri.fromFile(imageFile)
-//        val shareIntent = Intent()
-//        shareIntent.action = Intent.ACTION_SEND
-//        shareIntent.putExtra(Intent.EXTRA_TEXT, "roomcode is $roomCode")
-//        shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
-//        shareIntent.type = "image/*"
-//        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-//        startActivity(Intent.createChooser(shareIntent, "$roomCode"))
-        val intent = Intent()
-        intent.action = Intent.ACTION_VIEW
-        val uri = Uri.fromFile(imageFile)
-        intent.setDataAndType(uri, "image/*")
-        startActivity(intent)
-    }
 
 
     private fun createArrayOfWords(roomCode: String) {
@@ -236,14 +216,18 @@ class StartGameActivity : AppCompatActivity() {
         gameRef
             .update("isGameStarted", true)
             .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully written!") }
-            .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error writing document", e)
+                start_game_button.isEnabled = true
+                progressBar_start_game.visibility = View.VISIBLE
+            }
         fetching?.remove()
         val intent = Intent(this, GameActivity::class.java)
         intent.putExtra(USER_KEY_SIGNUP, myUser)
         intent.putExtra(JOIN_USER_KEY, roomCodeReceived)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
-        overridePendingTransition(R.anim.slide_out_bottom, R.anim.slide_in_bottom);
+//        overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
 
     }
 
@@ -268,6 +252,7 @@ class StartGameActivity : AppCompatActivity() {
                         if (maxplayers == playersJoined) {
                             object : CountDownTimer(2000, 1000) {
                                 override fun onFinish() {
+                                    start_game_button.animation = bottom_anim
                                     start_game_button.visibility = View.VISIBLE
                                 }
 
@@ -302,6 +287,7 @@ class StartGameActivity : AppCompatActivity() {
                     Log.d("Fetch", "Document is: ${doc.data}")
                 }
                 start_game_recyclerView.adapter = adapter
+                start_game_recyclerView.scheduleLayoutAnimation()
                 start_game_recyclerView.addItemDecoration(
                     DividerItemDecoration(
                         this,

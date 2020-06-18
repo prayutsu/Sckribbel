@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -24,19 +25,23 @@ class GameResultsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game_results)
         supportActionBar?.title = "LeaderBoard"
-//
+
+        val right_anim = AnimationUtils.loadAnimation(this, R.anim.right_animation)
+        val left_anim = AnimationUtils.loadAnimation(this, R.anim.left_animation)
+
+        logo_results.animation = left_anim
+        doodle_results.animation = right_anim
+        gif_imageview.animation = left_anim
 //        val roomCreatorUser: User? = intent.getParcelableExtra(USER_KEY_SIGNUP)
         val roomCode = intent.getStringExtra(ROOM_CODE).toString()
 
-        roomcode_textview.text = roomCode
+//        roomcode_textview.text = roomCode
         val db = Firebase.firestore
 
 
         val adapter = GroupAdapter<GroupieViewHolder>()
         game_results_recyclerview.adapter = adapter
-
-        val ref = db.collection("rooms").document(roomCode)
-            .collection("leaderBoardPlayers")
+        game_results_recyclerview.scheduleLayoutAnimation()
 
         var rank = 0
         for (player in playersList) {

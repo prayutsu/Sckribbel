@@ -12,6 +12,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +26,7 @@ import com.prayutsu.sckribbel.play.Player
 import com.prayutsu.sckribbel.register.SignupActivity
 import com.prayutsu.sckribbel.register.SignupActivity.Companion.USER_KEY_SIGNUP
 import kotlinx.android.synthetic.main.activity_room.*
+import java.lang.Math.floor
 import java.util.*
 
 
@@ -76,6 +78,13 @@ class RoomActivity : AppCompatActivity() {
         supportActionBar?.title = "Create or Join A Room"
 
         mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
+        val fade_in = AnimationUtils.loadAnimation(this, R.anim.fade_in_slow)
+        val fade_out = AnimationUtils.loadAnimation(this, R.anim.fade_out_slow)
+
+        dummy_create_button.animation = fade_in
+        join_room_button.animation = fade_in
+//        create_room_button.animation = fade_in
+//        button_final_join.animation = fade_in
 
 
         roomUser = intent.getParcelableExtra(USER_KEY_SIGNUP)
@@ -169,7 +178,11 @@ class RoomActivity : AppCompatActivity() {
     private fun createRoom(maxNumOfPlayers: Int) {
 
         val db = Firebase.firestore
-        val roomCode = UUID.randomUUID().toString().substring(0, 2)
+//        val roomCode = UUID.randomUUID().toString().substring(0, 2)
+//        val random= Random()
+//        val roomCode = random.nextInt(100).toString()
+        val roomCode =
+            (kotlin.math.floor(Math.random() * 90000000L).toLong() + 10000000L).toString()
 
         val data = hashMapOf(
             "playersCount" to 1,
@@ -203,7 +216,7 @@ class RoomActivity : AppCompatActivity() {
                 intent.putExtra(USER_KEY_SIGNUP, roomUser)
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
-                overridePendingTransition(R.anim.slide_out_bottom, R.anim.slide_in_bottom);
+//                overridePendingTransition(R.anim.left_to_right, R.anim.right_to_left);
             }
             .addOnFailureListener { e ->
                 Log.d("Room", "Error adding document")
@@ -220,6 +233,7 @@ class RoomActivity : AppCompatActivity() {
             }
 
     }
+
 
     private fun tryJoinRoom(enteredRoomCode: String) {
         val db = Firebase.firestore
@@ -283,7 +297,7 @@ class RoomActivity : AppCompatActivity() {
         intent.putExtra(USER_KEY_SIGNUP, roomUser)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
-        overridePendingTransition(R.anim.slide_out_bottom, R.anim.slide_in_bottom);
+//        overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
         removeListener()
     }
 

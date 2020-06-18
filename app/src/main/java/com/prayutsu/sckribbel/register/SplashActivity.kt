@@ -26,18 +26,21 @@ class SplashActivity : AppCompatActivity() {
 //        val USER_KEY_LOGIN = "USER_KEY_LOGIN"
     }
 
-    lateinit var fade_in: Animation
+    lateinit var fade_in_top: Animation
+    lateinit var fade_in_bottom: Animation
     lateinit var fade_out: Animation
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        fade_in = AnimationUtils.loadAnimation(this, R.anim.fade_in)
+        fade_in_top = AnimationUtils.loadAnimation(this, R.anim.top_animation)
+        fade_in_bottom = AnimationUtils.loadAnimation(this, R.anim.bottom_animation)
+
         fade_out = AnimationUtils.loadAnimation(this, R.anim.fade_out)
 
-        logo_splash.animation = fade_in
-        prayutsu_textview.animation = fade_in
-        doodle_imageview.animation = fade_in
+        logo_splash.animation = fade_in_top
+        prayutsu_textview.animation = fade_in_bottom
+        doodle_imageview.animation = fade_in_bottom
 
         startApp()
 

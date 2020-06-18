@@ -13,11 +13,13 @@
         <item name="colorOnError">#000000</item>
         <item name="colorSurface">#000000</item>
         <item name="colorOnSurface">#000000</item>
-
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
         <item name="android:windowContentTransitions">true</item>
     </style>
 
-    <style name="SplashTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar"></style>
+    <style name="SplashTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+    </style>
 
     <style name="GameTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <!-- Customize your theme here. -->
@@ -32,14 +34,12 @@
         <item name="colorSurface">#00acc1</item>
         <item name="colorOnSurface">#000000</item>
         <item name="backgroundColor">#009688</item>
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
 
     </style>
 
-    <style name="LoadingTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="backgroundColor">#0FFFFFFF</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="WindowAnimationTransition">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
     </style>
 </resources>

@@ -6,7 +6,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.view.WindowManager
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.firebase.firestore.ListenerRegistration
@@ -41,6 +42,7 @@ class StartJoinActivity : AppCompatActivity() {
     var fetching: ListenerRegistration? = null
     lateinit var mediaPlayer: MediaPlayer
 
+    lateinit var bottom_anim: Animation
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start_join)
@@ -49,6 +51,8 @@ class StartJoinActivity : AppCompatActivity() {
         val roomCodeReceived = intent.getStringExtra(RoomActivity.ROOM_CODE).toString()
         myUser = intent.getParcelableExtra(SignupActivity.USER_KEY_SIGNUP)
 
+        bottom_anim = AnimationUtils.loadAnimation(this, R.anim.bottom_animation)
+        caution_textView.animation = bottom_anim
         createArrayOfWords(roomCodeReceived)
         startGame(roomCodeReceived)
     }
@@ -119,6 +123,7 @@ class StartJoinActivity : AppCompatActivity() {
                         Log.d("Fetch", "Document is: ${doc.data}")
                     }
                     join_game_recycler_view.adapter = adapter
+                    join_game_recycler_view.scheduleLayoutAnimation()
                     join_game_recycler_view.addItemDecoration(
                         DividerItemDecoration(
                             this,
@@ -174,7 +179,7 @@ class StartJoinActivity : AppCompatActivity() {
                         intent.flags =
                             Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(intent)
-                        overridePendingTransition(R.anim.slide_out_bottom, R.anim.slide_in_bottom);
+//                        overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
                     }
 
                 } else {

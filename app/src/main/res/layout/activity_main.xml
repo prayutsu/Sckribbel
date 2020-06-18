@@ -5,19 +5,19 @@
     android:id="@+id/game_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#e1f5fe"
+    android:background="@drawable/gradient_room"
     android:visibility="visible"
     tools:context=".play.GameActivity">
 
     <ImageView
         android:id="@+id/color_pallette"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/paint"
         android:elevation="@dimen/cardview_default_elevation"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/stroke_imageButton" />
 
@@ -34,7 +34,7 @@
         android:elevation="@dimen/cardview_default_elevation"
         app:layout_constraintBottom_toTopOf="@+id/chat_log_recyclerview"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
@@ -43,13 +43,13 @@
         android:id="@+id/show_correct_word_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="140dp"
+        android:layout_marginTop="80dp"
         android:elevation="@dimen/cardview_default_elevation"
         android:gravity="center|center_horizontal|center_vertical"
         android:maxWidth="200dp"
         android:textColor="#08690C"
         android:textSize="24sp"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/drawing_board"
         app:layout_constraintStart_toStartOf="@+id/drawing_board"
         app:layout_constraintTop_toTopOf="@+id/drawing_board" />
@@ -64,32 +64,32 @@
         android:text="Choose a Word"
         android:textColor="#000000"
         android:textSize="24sp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/drawing_board"
         app:layout_constraintStart_toStartOf="@+id/drawing_board"
         app:layout_constraintTop_toTopOf="@+id/drawing_board" />
 
     <ImageButton
         android:id="@+id/eraser"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="18dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/eraser"
         android:elevation="@dimen/cardview_default_elevation"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/clock_imageview" />
+        app:layout_constraintTop_toBottomOf="@+id/pencil" />
 
     <ImageButton
         android:id="@+id/clear_button"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="18dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/trash"
         android:elevation="@dimen/cardview_default_elevation"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/eraser" />
 
@@ -156,24 +156,23 @@
     <ImageView
 
         android:id="@+id/clock_imageview"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="50dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="40dp"
+        android:elevation="@dimen/cardview_default_elevation"
         android:background="@drawable/clock"
-        android:elevation="@dimen/default_preview_image_height"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/clock_background_imageview"
         android:layout_width="18dp"
-        android:layout_height="22dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="2dp"
+        android:layout_height="18dp"
+        android:layout_marginTop="3dp"
         android:layout_marginBottom="1dp"
         android:background="@drawable/shape_clock_textview"
-        android:elevation="@dimen/default_preview_image_height"
+        android:elevation="@dimen/cardview_default_elevation"
         app:layout_constraintBottom_toBottomOf="@+id/clock_imageview"
         app:layout_constraintEnd_toEndOf="@+id/clock_imageview"
         app:layout_constraintStart_toStartOf="@+id/clock_imageview"
@@ -182,10 +181,10 @@
 
     <TextView
         android:id="@+id/timer_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="#e8f9fc"
-        android:elevation="@dimen/default_preview_image_height"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/shape_clock_textview"
+        android:elevation="@dimen/cardview_default_elevation"
         android:foregroundGravity="center"
         android:gravity="center|center_vertical"
         android:textColor="#000000"
@@ -205,10 +204,9 @@
         android:layout_marginTop="220dp"
         android:elevation="@dimen/cardview_default_elevation"
         android:gravity="center|center_horizontal|center_vertical"
-        android:text="lnalnlc d m ,m  "
         android:textColor="#070707"
         android:textSize="20sp"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/drawing_board"
         app:layout_constraintStart_toStartOf="@+id/drawing_board"
         app:layout_constraintTop_toTopOf="@+id/drawing_board" />
@@ -216,12 +214,12 @@
     <Button
         android:id="@+id/first_word_textview"
         style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
-        android:layout_width="200dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="first_word"
         android:textSize="18sp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/drawing_board"
         app:layout_constraintStart_toStartOf="@+id/drawing_board"
         app:layout_constraintTop_toBottomOf="@+id/choose_a_word_textview" />
@@ -229,12 +227,12 @@
     <Button
         android:id="@+id/second_word_textview"
         style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
-        android:layout_width="200dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="second_word"
         android:textSize="18sp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/first_word_textview"
         app:layout_constraintStart_toStartOf="@+id/first_word_textview"
         app:layout_constraintTop_toBottomOf="@+id/first_word_textview" />
@@ -242,13 +240,13 @@
     <Button
         android:id="@+id/third_word_textview"
         style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
-        android:layout_width="200dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="third_word"
 
         android:textSize="18sp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/second_word_textview"
         app:layout_constraintStart_toStartOf="@+id/second_word_textview"
         app:layout_constraintTop_toBottomOf="@+id/second_word_textview" />
@@ -259,6 +257,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginTop="60dp"
+        android:layoutAnimation="@anim/recyclerview_layout_animation"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
         android:elevation="@dimen/cardview_default_elevation"
@@ -269,32 +268,23 @@
         app:layout_constraintTop_toBottomOf="@+id/drawing_board" />
 
     <TextView
-        android:id="@+id/points_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="320dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
         android:id="@+id/round_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="10dp"
         android:textColor="#000000"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/stroke_imageButton"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="18dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/brush"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/clear_button" />
 
@@ -313,7 +303,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/imageView4"
+        android:id="@+id/logo_game"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="4dp"
@@ -325,6 +315,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/drawing_board"
         app:srcCompat="@drawable/logo" />
+
+    <ImageView
+        android:id="@+id/pencil"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="14dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clock_imageview"
+        app:srcCompat="@drawable/pencil" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

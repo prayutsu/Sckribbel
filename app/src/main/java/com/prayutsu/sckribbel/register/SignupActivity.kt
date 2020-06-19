@@ -60,6 +60,7 @@ class SignupActivity : AppCompatActivity() {
             if (photoSelected) {
                 button_signup.isEnabled = false
                 performSignup()
+                progressBar_signup.visibility = View.VISIBLE
             } else
                 Toast.makeText(this, "Setting up a profile photo is necessary!", Toast.LENGTH_SHORT)
                     .show()
@@ -121,6 +122,8 @@ class SignupActivity : AppCompatActivity() {
             Log.d("Main", "Please enter some text in both the fields")
             Toast.makeText(this, "Please enter some text in email/password", Toast.LENGTH_SHORT)
                 .show()
+            progressBar_signup.visibility = View.INVISIBLE
+
             return
         }
 
@@ -130,9 +133,6 @@ class SignupActivity : AppCompatActivity() {
                 //else if successful
                 Log.d("Main", "Successfully created user with uid : ${it.result?.user?.uid}")
 
-                progressBar_signup.visibility = View.VISIBLE
-
-
                 uploadImageToFirebaseStore()
             }
 
@@ -141,6 +141,7 @@ class SignupActivity : AppCompatActivity() {
                 Toast.makeText(this, "Failed to create user : ${it.message}", Toast.LENGTH_SHORT)
                     .show()
                 button_signup.isEnabled = true
+                progressBar_signup.visibility = View.INVISIBLE
             }
 
     }
@@ -169,6 +170,8 @@ class SignupActivity : AppCompatActivity() {
                 Log.d("Main", "Photo was not uploaded due to some error : ${it.message}")
                 Toast.makeText(this, "Couldn't upload photo : ${it.message}", Toast.LENGTH_SHORT)
                     .show()
+                progressBar_signup.visibility = View.INVISIBLE
+                button_signup.isEnabled = true
             }
     }
 
@@ -194,6 +197,8 @@ class SignupActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
                 .addOnFailureListener { e ->
+                    progressBar_signup.visibility = View.INVISIBLE
+                    button_signup.isEnabled = true
                     Log.d("Signup", "Error adding document")
                 }
         }

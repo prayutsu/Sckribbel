@@ -15,7 +15,9 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AlertDialogLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
@@ -26,8 +28,6 @@ import com.prayutsu.sckribbel.play.Player
 import com.prayutsu.sckribbel.register.SignupActivity
 import com.prayutsu.sckribbel.register.SignupActivity.Companion.USER_KEY_SIGNUP
 import kotlinx.android.synthetic.main.activity_room.*
-import java.lang.Math.floor
-import java.util.*
 
 
 class RoomActivity : AppCompatActivity() {
@@ -80,12 +80,10 @@ class RoomActivity : AppCompatActivity() {
         mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
         val fade_in = AnimationUtils.loadAnimation(this, R.anim.fade_in_slow)
         val fade_out = AnimationUtils.loadAnimation(this, R.anim.fade_out_slow)
-
+        val top = AnimationUtils.loadAnimation(this, R.anim.top_animation)
         dummy_create_button.animation = fade_in
         join_room_button.animation = fade_in
-//        create_room_button.animation = fade_in
-//        button_final_join.animation = fade_in
-
+        logo_imageview.animation = top
 
         roomUser = intent.getParcelableExtra(USER_KEY_SIGNUP)
         create_room_button.setOnClickListener {
@@ -94,7 +92,7 @@ class RoomActivity : AppCompatActivity() {
             val text = number_of_players_editText.text.toString()
             if (text != "") {
                 val numberOfPlayers = (number_of_players_editText.text.toString()).toInt()
-                if (numberOfPlayers in 1..6) {
+                if (numberOfPlayers in 2..6) {
                     room_code_edittext.visibility = View.INVISIBLE
                     createRoom(numberOfPlayers)
                 } else {
@@ -178,9 +176,7 @@ class RoomActivity : AppCompatActivity() {
     private fun createRoom(maxNumOfPlayers: Int) {
 
         val db = Firebase.firestore
-//        val roomCode = UUID.randomUUID().toString().substring(0, 2)
-//        val random= Random()
-//        val roomCode = random.nextInt(100).toString()
+
         val roomCode =
             (kotlin.math.floor(Math.random() * 90000000L).toLong() + 10000000L).toString()
 
@@ -462,10 +458,24 @@ class RoomActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.menu_sign_out -> {
-                FirebaseAuth.getInstance().signOut()
-                val intent = Intent(this, SignupActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
+                AlertDialog.Builder(this)
+                    .setTitle("Confirm Sign Out")
+                    .setMessage("Are you sure you want to Sign Out?")
+                    .setPositiveButton(
+                        "YES"
+                    ) { dialog, which ->
+                        Log.d("MainActivity", "Sending atomic bombs to Jupiter")
+                        FirebaseAuth.getInstance().signOut()
+                        val intent = Intent(this, SignupActivity::class.java)
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(intent)
+                    }
+                    .setNegativeButton(
+                        "Cancel"
+                    ) { dialog, which -> Log.d("MainActivity", "Aborting mission...") }
+                    .show()
+
             }
         }
         return super.onOptionsItemSelected(item)

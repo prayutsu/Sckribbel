@@ -40,6 +40,7 @@ class LoginActivity : AppCompatActivity() {
 
         button_login.setOnClickListener {
             button_login.isEnabled = false
+            login_progressbar.visibility = View.VISIBLE
             performLogin()
         }
     }
@@ -71,6 +72,7 @@ class LoginActivity : AppCompatActivity() {
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please fill out email/pw.", Toast.LENGTH_SHORT).show()
             button_login.isEnabled = true
+            login_progressbar.visibility = View.INVISIBLE
             return
         }
 
@@ -78,7 +80,6 @@ class LoginActivity : AppCompatActivity() {
             .addOnCompleteListener {
                 if (!it.isSuccessful) return@addOnCompleteListener
 
-                login_progressbar.visibility = View.VISIBLE
 
                 Log.d("Login", "Successfully logged in : ${it.result?.user?.uid}")
 
@@ -105,12 +106,14 @@ class LoginActivity : AppCompatActivity() {
                     .addOnFailureListener { exception ->
                         Log.d("Room", "Error getting documents: $exception")
                         button_login.isEnabled = true
+                        login_progressbar.visibility = View.INVISIBLE
                     }
             }
 
             .addOnFailureListener {
                 Toast.makeText(this, "Failed to log in: ${it.message}", Toast.LENGTH_SHORT).show()
                 button_login.isEnabled = true
+                login_progressbar.visibility = View.INVISIBLE
             }
     }
 }

@@ -1,7 +1,7 @@
-# sckribbel
+# Do-odle
 Multiplayer Game
 
-HOW TO PLAY?
+# HOW TO PLAY?
 
 1 -> Create or login using an existing account.
 

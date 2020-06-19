@@ -913,7 +913,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         playerUid: String, timeRemain: Int, timestamp: Long
     ) {
 
-
+        nearlyEqual = false
         val checkGuess = guessWord.toLowerCase()
         val correctWord = chosenWordByDrawer.toLowerCase()
         val l1 = checkGuess.length
@@ -1352,7 +1352,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         }
 
     }
-
 
     private fun resetCorrectGuessNum() {
         val ref = db.collection("rooms").document(roomCode)

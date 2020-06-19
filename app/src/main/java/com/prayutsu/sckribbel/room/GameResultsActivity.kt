@@ -1,5 +1,6 @@
 package com.prayutsu.sckribbel.room
 
+import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -20,11 +21,15 @@ import kotlinx.android.synthetic.main.activity_start_game.*
 
 class GameResultsActivity : AppCompatActivity() {
     private var _doubleBackToExitPressedOnce = false
+    lateinit var mediaPlayer: MediaPlayer
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game_results)
         supportActionBar?.title = "LeaderBoard"
+
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
 
         val right_anim = AnimationUtils.loadAnimation(this, R.anim.right_animation)
         val left_anim = AnimationUtils.loadAnimation(this, R.anim.left_animation)
@@ -52,6 +57,18 @@ class GameResultsActivity : AppCompatActivity() {
         val roomRef = db.collection("rooms").document(roomCode)
         roomRef
             .delete()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer.pause()
+        mediaPlayer.release()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mediaPlayer = MediaPlayer.create(applicationContext, R.raw.background_music);
+        mediaPlayer.start()
     }
 
     override fun onBackPressed() {

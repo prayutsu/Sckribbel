@@ -3,6 +3,7 @@ package com.prayutsu.sckribbel.play
 import com.prayutsu.sckribbel.R
 import android.app.Activity
 import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.view.Window
@@ -12,11 +13,14 @@ import kotlinx.android.synthetic.main.increase_stroke.*
 import com.prayutsu.sckribbel.play.GameActivity.Companion.myPaintView
 import com.prayutsu.sckribbel.play.GameActivity.Companion.seekProgress
 
+import kotlinx.android.synthetic.main.activity_main.*
+
 
 class DialogStroke
     (var c: Activity) : Dialog(c), View.OnClickListener {
     var d: Dialog? = null
-    var progressDetected: Int = 20
+    var progressDetected: Int = 10
+    val transparent = Color.TRANSPARENT
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -43,8 +47,8 @@ class DialogStroke
     override fun onClick(v: View) {
         when (v.id) {
             R.id.set_textview -> {
-                myPaintView?.setStrokeWidth(progressDetected)
                 seekProgress = progressDetected
+                myPaintView?.setStrokeWidth(seekProgress)
             }
             R.id.cancel_textview -> {
                 dismiss()

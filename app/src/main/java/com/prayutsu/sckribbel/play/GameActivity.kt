@@ -15,6 +15,7 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flask.colorpicker.ColorPickerView
@@ -63,7 +64,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     var finishTimer = false
     var flagOfWritingFinishTimer = false
     var text = ""
-
     var count = 0
     var roundNo = 1
 
@@ -84,6 +84,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     var correctGuessSound: Int? = null
     var penaltySound: Int? = null
 
+    val transparent = Color.TRANSPARENT
 
     lateinit var fade_in: Animation
     lateinit var fade_out: Animation
@@ -107,6 +108,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         val playersList = mutableListOf<Player>()
         var myPaintView: PaintView? = null
         var seekProgress = 10
+        var showResults = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -221,6 +223,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         return super.dispatchTouchEvent(ev)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onClick(view: View) {
         if (currentPlayer?.currentDrawer!!) {
             when (view.id) {
@@ -341,20 +344,48 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
                 R.id.eraser -> {
                     myPaintView?.eraser()
+                    imageView_eraser_button.background = resources.getDrawable(R.drawable.highlight)
+                    imageView_clear_button.setBackgroundColor(transparent)
+                    imageView_pencil_button.setBackgroundColor(transparent)
+                    imageView_stroke_width.setBackgroundColor(transparent)
+                    imageView_color_pallette.setBackgroundColor(transparent)
+
                 }
                 R.id.clear_button -> {
                     myPaintView?.clearDrawingForAll()
+//                    imageView_clear_button.background = resources.getDrawable( R.drawable.highlight)
+                    imageView_eraser_button.setBackgroundColor(transparent)
+                    imageView_pencil_button.setBackgroundColor(transparent)
+                    imageView_stroke_width.setBackgroundColor(transparent)
+                    imageView_color_pallette.background =
+                        resources.getDrawable(R.drawable.highlight)
                 }
                 R.id.color_pallette -> {
                     colorPaletteDisplay()
+                    imageView_color_pallette.background =
+                        resources.getDrawable(R.drawable.highlight)
+                    imageView_clear_button.setBackgroundColor(transparent)
+                    imageView_pencil_button.setBackgroundColor(transparent)
+                    imageView_stroke_width.setBackgroundColor(transparent)
+                    imageView_eraser_button.setBackgroundColor(transparent)
                 }
                 R.id.stroke_imageButton -> {
+                    imageView_stroke_width.background = resources.getDrawable(R.drawable.highlight)
+                    imageView_clear_button.setBackgroundColor(transparent)
+                    imageView_pencil_button.setBackgroundColor(transparent)
+                    imageView_eraser_button.setBackgroundColor(transparent)
+                    imageView_color_pallette.setBackgroundColor(transparent)
                     val cdd = DialogStroke(this)
                     cdd.show()
                 }
                 R.id.pencil -> {
+                    imageView_pencil_button.background = resources.getDrawable(R.drawable.highlight)
+                    imageView_clear_button.setBackgroundColor(transparent)
+                    imageView_eraser_button.setBackgroundColor(transparent)
+                    imageView_stroke_width.setBackgroundColor(transparent)
+                    imageView_color_pallette.setBackgroundColor(transparent)
                     myPaintView?.paint?.color = Color.BLACK
-                    myPaintView?.paint?.strokeWidth = 15f
+                    myPaintView?.paint?.strokeWidth = 10f
                 }
             }
         }
@@ -383,6 +414,11 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             third_word_textview.isEnabled = true
 
         } else {
+            imageView_pencil_button.setBackgroundColor(transparent)
+            imageView_clear_button.setBackgroundColor(transparent)
+            imageView_eraser_button.setBackgroundColor(transparent)
+            imageView_stroke_width.setBackgroundColor(transparent)
+            imageView_color_pallette.setBackgroundColor(transparent)
             eraser.animation = rtl_remove
             color_pallette.animation = rtl_remove
             clear_button.animation = rtl_remove
@@ -410,7 +446,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             finishTimer = false
             timerFinished = false
             flagOfWritingFinishTimer = false
-            show_correct_word_textview.visibility = View.GONE
+//            show_correct_word_textview.visibility = View.GONE
             resetCorrectGuessNum()
             showViewToPlayer()
         } else {
@@ -432,13 +468,13 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                         drawerRewardListener(currentDrawerUsername, myUid)
                     }
                     timer_textview.text = ""
+                    currentPlayer?.currentDrawer = false
                     myPaintView?.clearDrawingForAll()
                     val timerRef = db.collection("rooms").document(roomCode)
                         .collection("game").document("timer")
                     val turnRef = db.collection("rooms").document(roomCode)
                         .collection("game").document("turn")
 
-                    currentPlayer?.currentDrawer = false
                     currentTurnInGame += 1
                     if (currentTurnInGame > maxPlayersNum) {
                         currentTurnInGame = 1
@@ -456,11 +492,21 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                             Log.d(TAG, "turn updated: $currentTurnInGame")
                         }
                     chosen_word_textview.text = ""
+                    val guessMessage = GuessText("")
+
+                    guessMessage.username = currentDrawerUsername
+                    guessMessage.profileImageUrl = currentPlayer?.profileImageUrl.toString()
+                    guessMessage.guessText = "The correct word was \" $chosenWordByDrawer \"!!"
+                    guessMessage.textColor = Color.parseColor("#0097a7")
+                    guessAdapter.add(guessMessage)
+                    chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
+//                    writeCorrectWord()
                 }
             }
         currentDrawerTimer.start()
 
     }
+
 
     private fun startTimer() {
 
@@ -487,11 +533,12 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
 
                 }
                 override fun onFinish() {
+                    myPaintView?.clearDrawingForAll()
                     if (!currentPlayer?.currentDrawer!!) {
                         show_correct_word_textview.animation = bottom_anim
                         show_correct_word_textview.visibility = View.VISIBLE
                         show_correct_word_textview.text =
-                            "The correct word was \" $chosenWordByDrawer\"!"
+                            "The correct word was \" $chosenWordByDrawer \"!!"
                     }
                     timer_textview.text = ""
                     timerFinished = true
@@ -1213,15 +1260,19 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 if (snapshot != null && snapshot.exists()) {
                     Log.d(TAG, "Current data: ${snapshot.data}")
                     roundNo = (snapshot.get("currentRound") as Long).toInt()
-                    round_textview.text = "Round $roundNo of 3"
+                    if (roundNo <= 3)
+                        round_textview.text = "Round $roundNo of 3"
                     if (roundNo == 4) {
-                        val intent = Intent(this, GameResultsActivity::class.java)
-                        intent.putExtra(ROOM_CODE, roomCode)
-                        intent.flags =
-                            Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        intent.putExtra(ROOM_CODE, roomCode)
-                        startActivity(intent)
+                        round_textview.text = ""
+                        Handler().postDelayed({
+                            val intent = Intent(this, GameResultsActivity::class.java)
+                            intent.putExtra(ROOM_CODE, roomCode)
+                            intent.flags =
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            intent.putExtra(ROOM_CODE, roomCode)
+                            startActivity(intent)
 //                        this.overridePendingTransition(R.anim.right_to_left, R.anim.left_to_right);
+                        }, 2000)
                     }
                 } else {
                     Log.d(TAG, "Current data: null")
@@ -1265,7 +1316,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun colorPaletteDisplay() {
-        val mColor: Int = myPaintView?.paint?.color ?: Color.RED
+        val mColor: Int = myPaintView?.paint?.color ?: Color.GREEN
 
         ColorPickerDialogBuilder
             .with(this)
@@ -1301,6 +1352,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         }
 
     }
+
 
     private fun resetCorrectGuessNum() {
         val ref = db.collection("rooms").document(roomCode)

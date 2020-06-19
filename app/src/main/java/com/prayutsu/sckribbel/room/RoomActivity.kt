@@ -283,7 +283,6 @@ class RoomActivity : AppCompatActivity() {
         uidRef
             .set(hashmap)
 
-
     }
 
     private fun startJoinRoomActivity(roomCode: String) {

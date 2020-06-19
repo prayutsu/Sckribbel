@@ -543,7 +543,13 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     timer_textview.text = ""
                     timerFinished = true
                     chosen_word_textview.text = ""
-
+                    val guessMessage = GuessText("")
+                    guessMessage.username = currentDrawerUsername
+                    guessMessage.profileImageUrl = currentPlayer?.profileImageUrl.toString()
+                    guessMessage.guessText = "The correct word was \" $chosenWordByDrawer \"!!"
+                    guessMessage.textColor = Color.parseColor("#0097a7")
+                    guessAdapter.add(guessMessage)
+                    chat_log_recyclerview.scrollToPosition(guessAdapter.itemCount - 1)
                 }
             }
         otherPlayerTimer?.start()

@@ -910,8 +910,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 count++
             }
         }
-        if (l - count == 0 || l - count == 1 || l - count == 2)
-            nearlyEqual = true
+        nearlyEqual = l - count == 0 || l - count == 1 || l - count == 2
     }
 
     private fun checkGuess(

@@ -30,7 +30,7 @@ import com.prayutsu.sckribbel.register.SignupActivity.Companion.USER_KEY_SIGNUP
 import kotlinx.android.synthetic.main.activity_room.*
 
 
-class RoomActivity : AppCompatActivity() {
+class RoomActivity : AppCompatActivity(){
 
     companion object {
         val TAG = "Check"
@@ -63,6 +63,8 @@ class RoomActivity : AppCompatActivity() {
             Color.parseColor("#59E919")
         )
     }
+
+
 
 
     private var _doubleBackToExitPressedOnce = false
@@ -165,7 +167,7 @@ class RoomActivity : AppCompatActivity() {
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        if (currentFocus != null) {
+        if (currentFocus != null && currentFocus != number_of_players_editText && currentFocus != room_code_edittext) {
             val imm: InputMethodManager =
                 getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)

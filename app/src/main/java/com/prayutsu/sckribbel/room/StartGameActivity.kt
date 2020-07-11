@@ -78,9 +78,7 @@ class StartGameActivity : AppCompatActivity() {
         imageButton_share.setOnClickListener {
             val roomCode = roomCodeReceived.toLong()
             try {
-                var imageUri: Uri? = null
-                try {
-                    imageUri = Uri.parse(
+                var imageUri = Uri.parse(
                         MediaStore.Images.Media.insertImage(
                             this.contentResolver,
                             BitmapFactory.decodeResource(
@@ -89,8 +87,7 @@ class StartGameActivity : AppCompatActivity() {
                             ), "Play Doodle", "nkdcd ds,mdc "
                         )
                     )
-                } catch (e: NullPointerException) {
-                }
+
                 val text =
                     "I want to play Do-odle with you!\nSign up if you haven't and join room " +
                             "by entering the Room Code \"$roomCode\".\n" +
@@ -101,7 +98,6 @@ class StartGameActivity : AppCompatActivity() {
                 shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
                 shareIntent.putExtra(Intent.EXTRA_TITLE, "Share roomCode via ..")
                 shareIntent.type = "image/*"
-                shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
                 startActivity(shareIntent)
             } catch (ex: ActivityNotFoundException) {

@@ -1,5 +1,5 @@
 # Do-odle
-Multiplayer Game
+Multiplayer Pictionary Game 
 
 # HOW TO PLAY?
 
@@ -12,6 +12,8 @@ Multiplayer Game
 4 -> One by one each player selects a word and try to draw such that other players can guess it right.
 
 5 -> One who gueesses early gets the maximum points.
+
+**Note - Only 2-6 players can be accommodated in a room**
 
 # Download
 

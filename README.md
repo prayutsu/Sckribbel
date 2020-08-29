@@ -12,3 +12,7 @@ Multiplayer Game
 4 -> One by one each player selects a word and try to draw such that other players can guess it right.
 
 5 -> One who gueesses early gets the maximum points.
+
+# Download
+
+Click [here](https://drive.google.com/file/d/18lGMkGztZNcHgRU2F1Wxf0Xe0akniW7A/view?usp=sharing) to download the apk.

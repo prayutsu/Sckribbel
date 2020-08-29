@@ -16,3 +16,13 @@ Multiplayer Game
 # Download
 
 Click [here](https://drive.google.com/file/d/18lGMkGztZNcHgRU2F1Wxf0Xe0akniW7A/view?usp=sharing) to download the apk.
+
+# Screenshots
+
+<img src="app/src/main/assets/phone_screenshot_1.jpg" width="300"> <img src="app/src/main/assets/phone_screenshot_2.jpg" width="300">
+<img src="app/src/main/assets/phone_screenshot_3.jpg" width="300">
+<img src="app/src/main/assets/phone_screenshot_4.jpg" width="300">
+<img src="app/src/main/assets/phone_screenshot_5.jpg" width="300">
+<img src="app/src/main/assets/phone_screenshot_6.jpg" width="300">
+<img src="app/src/main/assets/phone_screenshot_7.jpg" width="300">
+<img src="app/src/main/assets/phone_screenshot_8.jpg" width="300">

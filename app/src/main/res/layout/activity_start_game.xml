@@ -67,6 +67,7 @@
         android:layout_marginStart="16dp"
         android:background="@drawable/share"
         android:elevation="@dimen/cardview_default_radius"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/copy_button"
         app:layout_constraintStart_toEndOf="@+id/copy_button"
         app:layout_constraintTop_toTopOf="@+id/copy_button" />

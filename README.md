@@ -21,10 +21,10 @@ Click [here](https://drive.google.com/file/d/18lGMkGztZNcHgRU2F1Wxf0Xe0akniW7A/v
 
 # Screenshots
 
-<img src="app/src/main/assets/phone_screenshot_1.jpg" width="295"> <img src="app/src/main/assets/phone_screenshot_2.jpg" width="295">
-<img src="app/src/main/assets/phone_screenshot_3.jpg" width="295">
-<img src="app/src/main/assets/phone_screenshot_4.jpg" width="295">
-<img src="app/src/main/assets/phone_screenshot_5.jpg" width="295">
-<img src="app/src/main/assets/phone_screenshot_6.jpg" width="295">
-<img src="app/src/main/assets/phone_screenshot_7.jpg" width="295">
-<img src="app/src/main/assets/phone_screenshot_8.jpg" width="295">
+<img src="app/src/main/assets/phone_screenshot_1.jpg" width="280"> <img src="app/src/main/assets/phone_screenshot_2.jpg" width="280">
+<img src="app/src/main/assets/phone_screenshot_3.jpg" width="280">
+<img src="app/src/main/assets/phone_screenshot_4.jpg" width="280">
+<img src="app/src/main/assets/phone_screenshot_5.jpg" width="280">
+<img src="app/src/main/assets/phone_screenshot_6.jpg" width="280">
+<img src="app/src/main/assets/phone_screenshot_7.jpg" width="280">
+<img src="app/src/main/assets/phone_screenshot_8.jpg" width="280">

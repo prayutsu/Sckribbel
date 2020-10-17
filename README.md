@@ -1,6 +1,9 @@
 # Do-odle
 Multiplayer Pictionary Game 
 
+# Overview of the app
+**Do-odle** is a free multiplayer drawing and guessing game app.It is one of the best friends and family online games for coronavirus quarantine.Each game consists of a few rounds decided by the host.In every round someone has to draw their chosen words and others have to guess the right answer in order to gain points. The faster the player guesses the answer ,more will be the points awarded to that player. The person with the most points at the end of game will then be crowned as the winner!!
+
 # HOW TO PLAY?
 
 1 -> Create or login using an existing account.
